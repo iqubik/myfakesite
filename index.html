@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="MySphere">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="MySphere — your personal workspace in the cloud">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='g'><stop offset='0%25' stop-color='%2314b8a6'/><stop offset='100%25' stop-color='%230d9488'/></radialGradient></defs><circle cx='50' cy='50' r='40' fill='url(%23g)'/><circle cx='38' cy='38' r='8' fill='rgba(255,255,255,0.35)'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='g'><stop offset='0%25' stop-color='%2314b8a6'/><stop offset='100%25' stop-color='%230d9488'/></radialGradient></defs><circle cx='50' cy='50' r='40' fill='url(%23g)'/><circle cx='38' cy='38' r='8' fill='rgba(255,255,255,0.35)'/></svg>">
+    <title>MySphere</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+
+
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0f766e; /* Teal fallback */
+            color: #ffffff;
+        }
+
+        .bg-planet {
+            position: absolute;
+            bottom: -135vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250vw;
+            height: 150vh;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at top, #134e4a 0%, #042f2e 100%);
+            box-shadow: 0 -5px 60px rgba(20, 184, 166, 0.8), inset 0 5px 20px rgba(255, 255, 255, 0.4);
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+
+        .shake-animation {
+            animation: shake 0.4s !important;
+        }
+
+        /* Canvas container (The 3D Background) */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Login Container (The Overlay) */
+        #login-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; 
+        }
+
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+
+        /* Custom inputs with glassmorphism */
+        .nc-input {
+            width: 100%;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+            display: block;
+            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            outline: none;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(60px) saturate(120%);
+            -webkit-backdrop-filter: blur(60px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .nc-input:focus {
+            background-color: rgba(0, 0, 0, 0.95);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+        .nc-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: none;
+        }
+
+        /* Layout classes (replacing Tailwind utility classes) */
+        .logo-wrapper {
+            width: 100%;
+            max-width: 340px;
+            padding: 0 1rem;
+            margin-bottom: 2rem;
+            pointer-events: auto;
+            box-sizing: border-box;
+        }
+
+        .logo-card {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(60px) saturate(120%);
+            -webkit-backdrop-filter: blur(60px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            box-sizing: border-box;
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+        }
+
+        .logo-title {
+            color: #ffffff;
+            font-size: 1.875rem;
+            font-weight: 400;
+            letter-spacing: 0.025em;
+        }
+
+        .form-wrapper {
+            width: 100%;
+            max-width: 340px;
+            padding: 0 1rem;
+            pointer-events: auto;
+            box-sizing: border-box;
+        }
+
+        .form-card {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(60px) saturate(120%);
+            -webkit-backdrop-filter: blur(60px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-body {
+            padding: 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-inner > * + * {
+            margin-top: 1rem;
+        }
+
+        .form-inner {
+            width: 100%;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .btn-login:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .links-row {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer-bar {
+            position: absolute;
+            bottom: 1.5rem;
+            width: 100%;
+            text-align: center;
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .input-field {
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 0.75rem;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.2s;
+        }
+        .input-field:focus-within .input-icon {
+            color: #ffffff;
+        }
+
+        .footer-link {
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.2s;
+        }
+        .footer-link:hover {
+            color: #ffffff;
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+        }
+        .footer-brand {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .footer-brand:hover {
+            text-decoration: underline;
+        }
+        .footer-version {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 0. The Planet Background -->
+    <div class="bg-planet"></div>
+
+    <!-- 1. The 3D Water Background -->
+    <div id="canvas-container"></div>
+
+    <!-- 2. The Login Form Overlay -->
+    <div id="login-container">
+        
+        <!-- Logo -->
+        <div class="logo-wrapper animate-fade-in">
+            <div class="logo-card">
+                <svg viewBox="0 0 40 40" class="logo-icon" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Sphere logo -->
+                    <defs>
+                        <radialGradient id="sphereGrad" cx="40%" cy="35%" r="50%">
+                            <stop offset="0%" stop-color="#14b8a6"/>
+                            <stop offset="100%" stop-color="#0d9488"/>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="20" cy="20" r="18" fill="url(#sphereGrad)"/>
+                    <circle cx="15" cy="14" r="5" fill="rgba(255,255,255,0.3)"/>
+                </svg>
+                <h1 class="logo-title" style="font-family: 'Inter', sans-serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 1);">MySphere</h1>
+            </div>
+        </div>
+
+        <div class="form-wrapper animate-fade-in-up">
+
+            <!-- Main Card (Glassmorphism) -->
+            <div id="form-card" class="form-card">
+
+                <div class="form-body">
+                    <form id="login-form" class="form-inner">
+
+                        <!-- CSRF Token -->
+                        <input type="hidden" name="requesttoken" id="requesttoken" value="ms-fake-token" />
+
+                        <!-- Username -->
+                        <div class="input-field">
+                            <div class="input-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <input
+                                id="user"
+                                name="user"
+                                type="text"
+                                class="nc-input"
+                                placeholder="Имя пользователя или email"
+                                required
+                                autocomplete="username"
+                            />
+                        </div>
+
+                        <!-- Password -->
+                        <div class="input-field">
+                            <div class="input-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </div>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                class="nc-input"
+                                placeholder="Пароль"
+                                required
+                                autocomplete="current-password"
+                            />
+                        </div>
+
+                        <!-- Button -->
+                        <button
+                            id="submit-btn"
+                            type="submit"
+                            class="btn-login"
+                        >
+                            <span>Войти</span>
+                            <svg style="margin-left: 0.5rem;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer text -->
+        <div class="footer-bar animate-fade-in">
+            <p class="footer-text">
+                <a href="#" class="footer-brand">MySphere</a> — ваше личное пространство в облаке
+            </p>
+            <p class="footer-version">v2.4.8</p>
+        </div>
+    </div>
+
+    <!-- 3. Logic Script -->
+    <script type="module">
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+
+        // --- Server Status Check ---
+        (function checkHealth() {
+            fetch('/api/status', { method: 'GET', cache: 'no-store' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.online && !data.maintenance) {
+                        console.log('[MySphere] Server ready — v' + data.version);
+                    }
+                })
+                .catch(() => {
+                    console.warn('[MySphere] Status check failed — offline mode');
+                });
+        })();
+
+        // --- CSRF Token Generation ---
+        (function generateCSRFToken() {
+            var array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            var token = 'ms-' + Array.from(array).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+            document.getElementById('requesttoken').value = token;
+        })();
+
+        // --- Form Logic ---
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const originalHTML = btn.innerHTML;
+            const user = document.getElementById('user').value;
+            const password = document.getElementById('password').value;
+            const token = document.getElementById('requesttoken').value;
+
+            // Show loading spinner
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>';
+
+            // Real POST request to /api/auth
+            fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user: user, pass: password, token: token })
+            })
+            .then(r => {
+                if (r.status === 429) {
+                    return r.json().then(data => {
+                        btn.innerHTML = originalHTML;
+                        alert(data.message || 'Слишком много попыток. Попробуйте через минуту.');
+                        throw new Error('Rate limited');
+                    });
+                }
+                return r.json();
+            })
+            .then(data => {
+                btn.innerHTML = originalHTML;
+                const card = document.getElementById('form-card');
+                card.classList.remove('shake-animation');
+                void card.offsetWidth;
+                card.classList.add('shake-animation');
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            })
+            .catch(err => {
+                if (err.message === 'Rate limited') return;
+                btn.innerHTML = originalHTML;
+                const card = document.getElementById('form-card');
+                card.classList.remove('shake-animation');
+                void card.offsetWidth;
+                card.classList.add('shake-animation');
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            });
+        });
+
+        // --- Utility: Gradient Texture for Background (Cloud Blue Theme) ---
+        function createGradientTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const context = canvas.getContext('2d');
+
+            const gradient = context.createRadialGradient(
+                512, 0, 0,
+                512, 0, 1024
+            );
+
+            // Teal / aquamarine palette
+            gradient.addColorStop(0.0, '#14b8a6'); // Lighter top
+            gradient.addColorStop(0.4, '#0d9488'); // Primary teal
+            gradient.addColorStop(0.8, '#0f766e'); // Darker
+            gradient.addColorStop(1.0, '#042f2e'); // Deepest
+
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 1024, 1024);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            return texture;
+        }
+
+        // --- Utility: Environment Map for Reflections ---
+        function createEnvTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const context = canvas.getContext('2d');
+            
+            context.fillStyle = '#042f2e';
+            context.fillRect(0, 0, 1024, 512);
+            
+            const gradient = context.createRadialGradient(512, 256, 0, 512, 256, 256);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.1, '#88ddff');
+            gradient.addColorStop(1, 'transparent');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 1024, 512);
+            
+            const gradient2 = context.createRadialGradient(200, 150, 0, 200, 150, 150);
+            gradient2.addColorStop(0, '#ffffff');
+            gradient2.addColorStop(0.2, '#44aaff');
+            gradient2.addColorStop(1, 'transparent');
+            context.fillStyle = gradient2;
+            context.fillRect(0, 0, 1024, 512);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            return texture;
+        }
+
+        // --- Noise Generator ---
+        const createNoise3D = () => {
+            const r = Math.random;
+            const p = new Uint8Array(256);
+            for (let i = 0; i < 256; i++) p[i] = i;
+            for (let i = 0; i < 256; i++) {
+                let k = Math.floor(r() * 256), t = p[k]; p[k] = p[i]; p[i] = t;
+            }
+            const perm = new Uint8Array(512);
+            for (let i = 0; i < 512; i++) {
+                perm[i] = p[i & 255];
+            }
+            return (x, y, z, time) => {
+                return Math.sin(x * 1.2 + time) * Math.cos(y * 1.2 + time) * Math.sin(z * 1.2 + time) +
+                       Math.sin(x * 2.5 + time) * 0.5 * Math.cos(y * 2.5 + time);
+            };
+        };
+
+        const initApp = () => {
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+
+            // --- Scene & Renderer ---
+            const scene = new THREE.Scene();
+            const bgTexture = createGradientTexture();
+            scene.background = bgTexture;
+            scene.environment = createEnvTexture();
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 7.0;
+
+            const renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                powerPreference: "high-performance",
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            
+            container.appendChild(renderer.domElement);
+
+            // --- Lighting ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xffffff, 5.0);
+            sunLight.position.set(0, 20, 5);
+            scene.add(sunLight);
+
+            const rayLight = new THREE.SpotLight(0xddeeff, 20, 60, 0.4, 0.5, 1);
+            rayLight.position.set(5, 15, 5);
+            rayLight.lookAt(0, 0, 0);
+            scene.add(rayLight);
+            
+            const backLight = new THREE.PointLight(0x14b8a6, 5, 20);
+            backLight.position.set(-5, 0, -10);
+            scene.add(backLight);
+
+            // --- The Sphere Logo ---
+            const cloudGroup = new THREE.Group();
+            const cloudMeshes = [];
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.85,
+                metalness: 0.1,
+                emissive: 0x042f2e, // Faint teal core
+                emissiveIntensity: 0.6
+            });
+
+            // Main sphere + small orbiting accents
+            const cloudData = [
+                { r: 2.4, x: 0, y: 0, z: 0 },
+                { r: 0.6, x: -3.2, y: 0.8, z: 0.5 },
+                { r: 0.5, x: 3.0, y: -0.6, z: -0.3 }
+            ];
+
+            cloudData.forEach(data => {
+                const geo = new THREE.SphereGeometry(data.r, 64, 64);
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.position.set(data.x, data.y, data.z);
+                mesh.userData = { originalPositions: geo.attributes.position.array.slice(), radius: data.r };
+                cloudGroup.add(mesh);
+                cloudMeshes.push(mesh);
+            });
+            
+            scene.add(cloudGroup);
+
+            // --- Light Rays ---
+            const rayGeo = new THREE.PlaneGeometry(25, 25);
+            const rayMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    uColor: { value: new THREE.Color(0x14b8a6) }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec3 uColor;
+                    varying vec2 vUv;
+                    
+                    float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+                    float noise(vec2 p) {
+                        vec2 i = floor(p);
+                        vec2 f = fract(p);
+                        f = f * f * (3.0 - 2.0 * f);
+                        return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+                                   mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+                    }
+                    
+                    void main() {
+                        vec2 uv = vUv * 2.0 - 1.0;
+                        float angle = atan(uv.y, uv.x);
+                        float radius = length(uv);
+                        
+                        float ray1 = noise(vec2(angle * 4.0, time * 0.3));
+                        float ray2 = noise(vec2(angle * 8.0, time * 0.5));
+                        float ray3 = noise(vec2(angle * 14.0, time * 0.8));
+                        
+                        float rays = (ray1 + ray2 * 0.5 + ray3 * 0.25) / 1.75;
+                        float alpha = rays * smoothstep(1.0, 0.0, radius) * smoothstep(0.0, 0.3, radius);
+                        float core = smoothstep(0.4, 0.0, radius);
+                        
+                        gl_FragColor = vec4(uColor + core * 0.5, alpha * 0.6 + core * 0.3);
+                    }
+                `,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const rayMesh = new THREE.Mesh(rayGeo, rayMat);
+            rayMesh.position.z = -3;
+            scene.add(rayMesh);
+
+            const coreLight = new THREE.PointLight(0x00ffff, 10, 15);
+            coreLight.position.set(0, 0, -2);
+            scene.add(coreLight);
+
+            // --- Particles ---
+            const particlesCount = 1500;
+            const posArray = new Float32Array(particlesCount * 3);
+            const scaleArray = new Float32Array(particlesCount);
+            const originalParticlePos = new Float32Array(particlesCount * 3);
+
+            for(let i = 0; i < particlesCount * 3; i+=3) {
+                const r = 4.5 + Math.random() * 15; 
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.sin(phi) * Math.sin(theta);
+                const z = (r * Math.cos(phi)) * 0.5;
+
+                posArray[i] = x;
+                posArray[i+1] = y;
+                posArray[i+2] = z;
+                originalParticlePos[i] = x;
+                originalParticlePos[i+1] = y;
+                originalParticlePos[i+2] = z;
+                scaleArray[i/3] = Math.random();
+            }
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            particlesGeometry.setAttribute('aScale', new THREE.BufferAttribute(scaleArray, 1));
+
+            const particlesMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    uColor: { value: new THREE.Color(0x99f6e4) },
+                    uPixelRatio: { value: renderer.getPixelRatio() }
+                },
+                vertexShader: `
+                    attribute float aScale;
+                    varying float vAlpha;
+                    uniform float uPixelRatio;
+                    void main() {
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_Position = projectionMatrix * mvPosition;
+                        gl_PointSize = 70.0 * aScale * uPixelRatio * (1.0 / -mvPosition.z);
+                        float dist = length(position.xy);
+                        vAlpha = 1.0 - smoothstep(10.0, 20.0, dist); 
+                    }
+                `,
+                fragmentShader: `
+                    varying float vAlpha;
+                    uniform vec3 uColor;
+                    void main() {
+                        vec2 p = gl_PointCoord * 2.0 - 1.0;
+                        float d = length(p);
+                        if (d > 1.0) discard;
+                        float glow = smoothstep(1.0, 0.0, d);
+                        gl_FragColor = vec4(uColor, vAlpha * glow * 0.8);
+                    }
+                `,
+                transparent: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particleMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particleMesh);
+
+            // --- Animation Loop ---
+            const mouse = new THREE.Vector2();
+            const targetMouse = new THREE.Vector2();
+            const noise = createNoise3D();
+            const clock = new THREE.Clock();
+
+            window.addEventListener('mousemove', (event) => {
+                targetMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                targetMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            // Touch support (swipes/drag)
+            let isTouching = false;
+            window.addEventListener('touchstart', (event) => {
+                isTouching = true;
+                if(event.touches.length > 0) {
+                    targetMouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                    targetMouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (event) => {
+                if(event.touches.length > 0) {
+                    targetMouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                    targetMouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                isTouching = false;
+            }, { passive: true });
+
+            // Gyroscope support (device orientation)
+            window.addEventListener('deviceorientation', (event) => {
+                // Touch overrides gyro, and ensure we have valid gyro data
+                if (isTouching || event.gamma === null || event.beta === null) return; 
+                
+                // gamma: left-to-right tilt (-90 to 90)
+                // beta: front-to-back tilt (-180 to 180)
+                // Assuming device is held vertically at ~45 degrees (beta = 45)
+                
+                let x = event.gamma / 45; 
+                let y = (event.beta - 45) / 45;
+                
+                // Clamp values between -1.5 and 1.5 to allow a bit more extreme tilt
+                targetMouse.x = Math.max(-1.5, Math.min(1.5, x));
+                targetMouse.y = Math.max(-1.5, Math.min(1.5, -y)); // Invert Y for screen space
+            });
+
+            // iOS 13+ DeviceOrientation permission request on first interaction
+            let gyroPermissionGranted = false;
+            const requestGyro = () => {
+                if (gyroPermissionGranted) return;
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') gyroPermissionGranted = true;
+                        })
+                        .catch(console.error);
+                } else {
+                    gyroPermissionGranted = true;
+                }
+            };
+            window.addEventListener('click', requestGyro, { once: true });
+            window.addEventListener('touchstart', requestGyro, { once: true });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                particlesMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
+            });
+
+            const animate = () => {
+                const time = clock.getElapsedTime();
+
+                mouse.x += (targetMouse.x - mouse.x) * 0.03;
+                mouse.y += (targetMouse.y - mouse.y) * 0.03;
+
+                if (rayMat) {
+                    rayMat.uniforms.time.value = time;
+                    rayMesh.rotation.z = time * 0.02;
+                }
+
+                const vertex = new THREE.Vector3();
+                const mouse3D = new THREE.Vector3(mouse.x * 6, mouse.y * 6, 4);
+
+                cloudMeshes.forEach(mesh => {
+                    const posAttr = mesh.geometry.attributes.position;
+                    const orig = mesh.userData.originalPositions;
+                    const r = mesh.userData.radius;
+
+                    for (let i = 0; i < posAttr.count; i++) {
+                        vertex.fromArray(orig, i * 3);
+
+                        // World coordinates for seamless noise across the 3 spheres
+                        const wx = vertex.x + mesh.position.x;
+                        const wy = vertex.y + mesh.position.y;
+                        const wz = vertex.z + mesh.position.z;
+
+                        const n = noise(wx * 0.4, wy * 0.4, wz * 0.4, time * 0.3);
+                        const displacement = 0.35 * n; 
+
+                        const dist = vertex.clone().add(mesh.position).distanceTo(mouse3D);
+                        let mouseEffect = 0;
+                        if (dist < 6.0) {
+                            const force = (6.0 - dist) / 6.0; 
+                            mouseEffect = Math.sin(force * Math.PI) * 0.2; 
+                        }
+
+                        vertex.normalize().multiplyScalar(r + displacement + mouseEffect);
+                        posAttr.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                    }
+                    posAttr.needsUpdate = true;
+                    mesh.geometry.computeVertexNormals();
+                });
+
+                // Cloud group reacts to mouse and floats
+                cloudGroup.rotation.y = Math.sin(time * 0.1) * 0.05 + mouse.x * 0.15;
+                cloudGroup.rotation.x = Math.sin(time * 0.15) * 0.05 - mouse.y * 0.15;
+                cloudGroup.position.y = Math.sin(time * 0.5) * 0.1;
+
+                const particlePositions = particlesGeometry.attributes.position.array;
+                for(let i = 0; i < particlesCount; i++) {
+                    const i3 = i * 3;
+                    let x = particlePositions[i3];
+                    let y = particlePositions[i3+1];
+                    
+                    y += Math.sin(time * 0.1 + x * 0.2) * 0.003;
+                    x += Math.cos(time * 0.1 + y * 0.2) * 0.003;
+
+                    const dx = x - mouse3D.x;
+                    const dy = y - mouse3D.y;
+                    const d = Math.sqrt(dx*dx + dy*dy);
+                    if(d < 5.0) {
+                        const force = (5.0 - d) * 0.01;
+                        x += dx * force;
+                        y += dy * force;
+                    }
+
+                    x += (originalParticlePos[i3] - x) * 0.005;
+                    y += (originalParticlePos[i3+1] - y) * 0.005;
+
+                    particlePositions[i3] = x;
+                    particlePositions[i3+1] = y;
+                }
+                particlesGeometry.attributes.position.needsUpdate = true;
+
+                camera.position.x += (mouse.x * 0.3 - camera.position.x) * 0.02;
+                camera.position.y += (mouse.y * 0.3 - camera.position.y) * 0.02;
+                camera.lookAt(0, 0, 0);
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            };
+
+            animate();
+        };
+
+        initApp();
+    </script>
+</body>
+</html>

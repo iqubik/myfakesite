@@ -1,0 +1,46 @@
+services:
+  fakesite:
+    image: nginx:alpine
+    container_name: fakesite
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./status.php:/usr/share/nginx/html/status.php:ro
+      - ./phpinfo.php:/usr/share/nginx/html/phpinfo.php:ro
+      - ./favicon.ico:/usr/share/nginx/html/favicon.ico:ro
+      - ./apple-touch-icon.png:/usr/share/nginx/html/apple-touch-icon.png:ro
+      - ./robots.txt:/usr/share/nginx/html/robots.txt:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt/live/YOUDOMEN.XXX/fullchain.pem:/etc/nginx/certs/fakesite.crt:ro
+      - /etc/letsencrypt/live/YOUDOMEN.XXX/privkey.pem:/etc/nginx/certs/fakesite.key:ro
+    networks:
+      - fakesite
+    depends_on:
+      - php-fpm
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
+
+  php-fpm:
+    image: php:8.3-fpm-alpine
+    container_name: fakesite-php
+    restart: unless-stopped
+    volumes:
+      - ./status.php:/usr/share/nginx/html/status.php:ro
+      - ./phpinfo.php:/usr/share/nginx/html/phpinfo.php:ro
+    networks:
+      - fakesite
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 32M
+
+networks:
+  fakesite:
+    driver: bridge
