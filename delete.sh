@@ -81,59 +81,51 @@ else
   log "Force mode — удаление без подтверждения"
 fi
 
+#################################
+# START
+#################################
 need_root
 resolve_compose_cmd
 log "Compose команда: ${COMPOSE_CMD[*]}"
 
+log "Начинаем удаление MySphere fakesite"
+
+if [[ ! -d "$PROJECT_DIR" ]]; then
+  warn "Директория $PROJECT_DIR не найдена — удалять нечего"
+  exit 0
+fi
+
+cd "$PROJECT_DIR"
+
 #################################
 # DOCKER COMPOSE DOWN
 #################################
-if [[ -d "$PROJECT_DIR" ]]; then
-  cd "$PROJECT_DIR"
-
+if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
   if [[ -f docker-compose.yml ]]; then
-    log "Останавливаем контейнеры MySphere fakesite..."
-    "${COMPOSE_CMD[@]}" down --volumes --remove-orphans || warn "Ошибка при docker compose down (возможно контейнеры уже остановлены)"
+    log "Останавливаем контейнеры MySphere fakesite"
+    docker compose down --volumes --remove-orphans || warn "Ошибка при docker compose down"
   else
-    warn "docker-compose.yml не найден в $PROJECT_DIR"
+    warn "docker-compose.yml не найден"
   fi
 else
-  warn "Директория $PROJECT_DIR не найдена — контейнеры не остановлены"
+  warn "Docker или docker compose не установлен — пропуск"
 fi
 
 #################################
 # CLEAN IMAGES
 #################################
-log "Удаляем образы myfakesite (если есть)..."
+log "Удаляем образы myfakesite (если есть)"
 
 docker images --format '{{.Repository}} {{.ID}}' \
   | grep -E "myfakesite|fakesite" \
   | awk '{print $2}' \
-  | xargs -r docker rmi -f 2>/dev/null || true
+  | xargs -r docker rmi -f || true
 
 #################################
 # REMOVE DIRECTORY
 #################################
-if [[ -d "$PROJECT_DIR" ]]; then
-  log "Удаляем $PROJECT_DIR"
-  rm -rf "$PROJECT_DIR"
-  log "Директория удалена"
-else
-  warn "Директория $PROJECT_DIR уже не существует"
-fi
-
-#################################
-# CLEAN LEFTOVERS (nginx-http.conf override etc.)
-#################################
-log "Проверяем оставшиеся артефакты..."
-
-# Удаляем self-signed сертификаты если были созданы
-if [[ -d "/etc/letsencrypt/live/localhost" ]]; then
-  log "Удаляем self-signed сертификаты localhost"
-  rm -rf "/etc/letsencrypt/live/localhost"
-fi
-
-# Если домен был другим — сертификаты остаются, пользователь удалит вручную
+log "Удаляем $PROJECT_DIR"
+rm -rf "$PROJECT_DIR"
 
 #################################
 # DONE

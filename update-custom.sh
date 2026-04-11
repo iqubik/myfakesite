@@ -127,6 +127,8 @@ git fetch origin "$BRANCH"
 
 if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
   git checkout "$BRANCH"
+  # Merge from FETCH_HEAD to support repos cloned with --single-branch
+  # where origin/<branch> may not exist.
   git merge --ff-only FETCH_HEAD || die "Не удалось fast-forward merge. Проверьте локальные изменения в $PROJECT_DIR."
 else
   git checkout -b "$BRANCH" FETCH_HEAD
@@ -135,10 +137,9 @@ fi
 log "Исходники обновлены до ${BRANCH}"
 
 #################################
-# REBUILD & RESTART
+# RESTART CONTAINERS
 #################################
 log "Перезапуск контейнеров..."
-"${COMPOSE_CMD[@]}" down
 "${COMPOSE_CMD[@]}" up -d --remove-orphans --force-recreate
 
 # Проверка: все ли контейнеры запустились
@@ -153,10 +154,24 @@ fi
 #################################
 log "Проверяем доступность сайта..."
 
-if curl -fsS -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null | grep -qE "200|301|302"; then
-  log "Сайт доступен ✓"
+# Определяем режим: ищем SSL-сертификаты в docker-compose.yml или nginx.conf
+HTTPS_MODE=0
+if grep -q "listen 443 ssl" nginx.conf 2>/dev/null && ! grep -q "# - \"443:443\"" docker-compose.yml 2>/dev/null; then
+  HTTPS_MODE=1
+fi
+
+if [[ $HTTPS_MODE -eq 1 ]]; then
+  if curl -fsSk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null | grep -qE "200|301|302"; then
+    log "Сайт доступен (HTTPS) ✓"
+  else
+    warn "Сайт не отвечает на https://localhost/ (возможно другой домен или ошибка nginx)"
+  fi
 else
-  warn "Сайт не отвечает на http://localhost/ (возможно нужен HTTPS или другой домен)"
+  if curl -fsS -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null | grep -qE "200|301|302"; then
+    log "Сайт доступен (HTTP) ✓"
+  else
+    warn "Сайт не отвечает на http://localhost/ (возможно ошибка nginx)"
+  fi
 fi
 
 log "Готово: MySphere fakesite обновлён до ${REPO_URL} (${BRANCH})"
