@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: install/phase5-start.sh v1.0
 # Phase 5: Start containers, verify, summary
 # Expects: MODE, DOMAIN, COMPOSE_CMD, log/warn/die
 

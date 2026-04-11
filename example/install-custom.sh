@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: example/install-custom.sh v1.0
 set -euo pipefail
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR

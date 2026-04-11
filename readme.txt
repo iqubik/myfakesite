@@ -1,3 +1,4 @@
+# file: readme.txt v1.0
 Еастройка под себя:
 Замените:
 docker-compose.yml

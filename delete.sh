@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: delete.sh v1.0
 set -euo pipefail
 
 #################################

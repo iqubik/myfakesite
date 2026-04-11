@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: install/phase3-certs.sh v1.0
 # Phase 3: SSL certificates
 # Sets: SSL_CERT_PATH, SSL_KEY_PATH, SSL_MODE
 # Expects: MODE, DOMAIN, CUSTOM_CERT, CUSTOM_KEY, log/warn/die

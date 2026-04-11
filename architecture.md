@@ -1,3 +1,4 @@
+<!-- file: architecture.md v1.0 -->
 # MySphere fakesite — Architecture & Logic Flow
 
 ## Install Pipeline Overview

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: update-custom.sh v1.0
 set -euo pipefail
 
 #################################

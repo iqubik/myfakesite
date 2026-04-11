@@ -1,3 +1,4 @@
+<!-- file: myshpere-logic.md v1.0 -->
 # MySphere — Application Logic
 
 ## Request Routing Architecture

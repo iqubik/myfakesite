@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: install/phase4-apply.sh v1.0
 # Phase 4: Apply config — replace domain, adapt for HTTP mode
 # Expects: DOMAIN, MODE, SSL_CERT_PATH, SSL_KEY_PATH, log/warn/die
 

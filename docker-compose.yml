@@ -1,3 +1,4 @@
+# file: docker-compose.yml v1.0
 services:
   fakesite:
     image: nginx:alpine

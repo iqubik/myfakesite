@@ -1,3 +1,4 @@
+<!-- file: QWEN.md v1.0 -->
 # myfakesite — MySphere Fake Login Portal
 
 ## Project Overview

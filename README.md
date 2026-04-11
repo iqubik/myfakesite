@@ -1,3 +1,4 @@
+<!-- file: README.md v1.0 -->
 # MySphere — Учебный проект: Mock API & Frontend
 
 > **Mock API Usage Tutorial** — как имитировать бэкенд на уровне Nginx для разработки и тестирования фронтенда без реального сервера.
@@ -45,6 +46,23 @@
 ```
 
 ### Запуск
+
+#### ⚡ Быстрая установка (одной командой)
+
+```bash
+# HTTP-режим, localhost
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
+
+# С доменом и HTTPS (Let's Encrypt)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com
+
+# С self-signed сертификатом (по IP)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
+```
+
+> **Требования:** Linux-сервер с Docker, Docker Compose и `curl`. Скрипт запускается от **root**.
+
+#### Ручная установка
 
 ```bash
 docker compose up -d
@@ -183,6 +201,23 @@ The concept is simple: you want to build a polished single-page application with
 ```
 
 ### Running
+
+#### ⚡ Quick Install (one command)
+
+```bash
+# HTTP mode, localhost
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
+
+# With domain and HTTPS (Let's Encrypt)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com
+
+# With self-signed certificate (by IP)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
+```
+
+> **Requirements:** Linux server with Docker, Docker Compose, and `curl`. The script runs as **root**.
+
+#### Manual setup
 
 ```bash
 docker compose up -d

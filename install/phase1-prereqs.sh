@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# file: install/phase1-prereqs.sh v1.0
 # Phase 1: Prerequisites + Git clone/pull
 # Expects: REPO_URL, BRANCH, PROJECT_DIR, log/warn/die
 
