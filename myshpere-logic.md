@@ -16,7 +16,7 @@ flowchart TD
   PathMatch -->|"/api/auth"| Auth["POST /api/auth\nlimit_req: 3r/min, burst=2\nreturn 401 JSON"]
   PathMatch -->|"/api/files"| Files["GET /api/files/*\nreturn 401\nТребуется авторизация"]
   PathMatch -->|"/api/users"| Users["GET /api/users/*\nreturn 401\nТребуется авторизация"]
-  PathPath -->|"/api/settings"| Settings["GET /api/settings\nreturn 200 JSON\nнастройки пользователя"]
+  PathMatch -->|"/api/settings"| Settings["GET /api/settings\nreturn 200 JSON\nнастройки пользователя"]
   PathMatch -->|"/heartbeat"| Heartbeat["GET /heartbeat\nreturn 200 JSON\n{ok:true, ts:msec}"]
   PathMatch -->|"/robots.txt"| Robots["GET /robots.txt\nreturn 200 text/plain\nDisallow: /api/, /admin/, /internal/"]
   PathMatch -->|"/.well-known/security.txt"| SecTxt["GET /.well-known/security.txt\nreturn 200\nContact: admin@DOMAIN"]
@@ -118,20 +118,20 @@ flowchart TD
 stateDiagram-v2
   [*] --> Idle: IP первый запрос
 
-  Idle --> Granted: запрос ≤ 3/мин\nбеспроводной доступ
-  Idle --> Burst: burst=2\nmgn
+  Idle --> Granted: запрос <= 3/min
+  Idle --> Burst: burst=2 nodelay
 
   Granted --> Idle: ответ 200/401
-  Burst --> Idle: ответ 200/401\n(nodelay)
+  Burst --> Idle: ответ 200/401 (nodelay)
 
   Granted --> Exhausted: лимит исчерпан
   Burst --> Exhausted: burst исчерпан
 
   Exhausted --> RateLimited: следующий запрос
-  RateLimited --> Return429: return 429 JSON\nRetry-After: 20
+  RateLimited --> Return429: return 429 JSON Retry-After 20
 
   Return429 --> Cooling: wait 20 сек
-  Cooling --> Idle: время прошло\nзапрос снова
+  Cooling --> Idle: время прошло запрос снова
 
   note right of RateLimited
     zone: auth_limit:10m
@@ -189,50 +189,48 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-  subgraph HOST [Linux Host]
-    subgraph NETWORK [Docker Network: fakesite (bridge)]
-      subgraph NGINX_CONTAINER [fakesite (nginx:alpine)]
-        N1["nginx:80, :443"]
-        N2["ports:\n80:80\n443:443"]
-        N3["limits:\nCPU: 0.25\nRAM: 64M"]
-      end
-
-      subgraph PHP_CONTAINER [fakesite-php (php:8.3-fpm-alpine)]
-        P1["php-fpm:9000"]
-        P2["no exposed ports\nonly internal network"]
-        P3["limits:\nCPU: 0.1\nRAM: 32M"]
-      end
-
-      N1 -->|"fastcgi_pass\nphp-fpm:9000"| P1
-    end
-
-    subgraph VOLUMES [Bind Mounts]
-      V1["./index.html → /usr/share/nginx/html/index.html :ro"]
-      V2["./nginx.conf → /etc/nginx/conf.d/default.conf :ro"]
-      V3["./status.php → /usr/share/nginx/html/status.php :ro"]
-      V4["./phpinfo.php → /usr/share/nginx/html/phpinfo.php :ro"]
-      V5["./favicon.ico → ... :ro"]
-      V6["./apple-touch-icon.png → ... :ro"]
-      V7["./robots.txt → ... :ro"]
-      V8["SSL cert → /etc/nginx/certs/fakesite.crt :ro"]
-      V9["SSL key → /etc/nginx/certs/fakesite.key :ro"]
-      V10["status.php → php-fpm :ro"]
-      V11["phpinfo.php → php-fpm :ro"]
-    end
-
-    subgraph CERTS [SSL Certificates]
-      C1["/etc/letsencrypt/live/DOMAIN/\nfullchain.pem + privkey.pem\nили self-signed"]
-    end
+  subgraph NGINX_CONTAINER ["fakesite (nginx:alpine)"]
+    N1["nginx :80, :443"]
+    N2["ports: 80:80, 443:443"]
+    N3["limits: CPU 0.25, RAM 64M"]
   end
 
-  Internet -->|"HTTP 80\nHTTPS 443"| N2
-  C1 -. mount .-> V8
-  C1 -. mount .-> V9
+  subgraph PHP_CONTAINER ["fakesite-php (php:8.3-fpm-alpine)"]
+    P1["php-fpm :9000"]
+    P2["no exposed ports\ninternal network only"]
+    P3["limits: CPU 0.1, RAM 32M"]
+  end
+
+  subgraph NETWORK ["Docker Network: fakesite (bridge)"]
+    NET["internal communication\nnginx -- fastcgi_pass --> php-fpm:9000"]
+  end
+
+  subgraph VOLUMES ["Bind Mounts (read-only)"]
+    V1["index.html → /usr/share/nginx/html/"]
+    V2["nginx.conf → /etc/nginx/conf.d/default.conf"]
+    V3["status.php → nginx + php-fpm"]
+    V4["phpinfo.php → nginx + php-fpm"]
+    V5["favicon.ico, apple-touch-icon.png, robots.txt"]
+    V6["SSL cert → /etc/nginx/certs/fakesite.crt"]
+    V7["SSL key → /etc/nginx/certs/fakesite.key"]
+  end
+
+  subgraph CERTS ["SSL Certificates"]
+    C1["/etc/letsencrypt/live/DOMAIN/\nfullchain.pem + privkey.pem\nor self-signed"]
+  end
+
+  Internet -- "HTTP 80\nHTTPS 443" --> N2
+  N1 -- "fastcgi_pass" --> P1
+  NGINX_CONTAINER --- NETWORK
+  PHP_CONTAINER --- NETWORK
+  C1 -. mount .-> V6
+  C1 -. mount .-> V7
   VOLUMES -. volumes .-> NGINX_CONTAINER
   VOLUMES -. volumes .-> PHP_CONTAINER
 
   style NGINX_CONTAINER fill:#bfb
   style PHP_CONTAINER fill:#bbf
+  style NETWORK fill:#ffd
   style VOLUMES fill:#ffb
   style CERTS fill:#fbb
 ```
@@ -248,7 +246,7 @@ flowchart TD
     L4["Google Fonts: Inter\npreconnect → load"]
   end
 
-  subgraph 3D [Three.js Scene]
+  subgraph THREED ["Three.js Scene"]
     T1["Scene: gradient background\nteal palette (#14b8a6 → #042f2e)"]
     T2["Camera: Perspective 75°\nz = 7.0"]
     T3["Renderer: WebGL,\nACES Filmic tone mapping\npixelRatio: min(devicePixel, 2)"]
@@ -290,10 +288,10 @@ flowchart TD
   A2 -->|"429"| A6
   A6 --> A5
 
-  H1 -.独立执行.-> H2
+  H1 -. независимо .-> H2
   H1 -.catch.-> H3
 
-  style 3D fill:#ddf
+  style THREED fill:#ddf
   style FORM fill:#ffd
   style AUTH_FLOW fill:#fdd
   style HEALTH fill:#dfd
@@ -473,11 +471,12 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-  participant U as 👤 User Browser
+  participant U as User Browser
   participant N as nginx (fakesite)
   participant P as php-fpm (fakesite-php)
   participant FS as File System (bind mounts)
   participant SSL as SSL Certificates
+  participant Monitor as Monitoring
 
   Note over U,SSL: === HTTPS Request ===
   U->>N: GET https://DOMAIN/ (HTTPS)
@@ -486,7 +485,7 @@ sequenceDiagram
   SSL-->>N: loaded
   N->>FS: try_files / → /index.html
   FS-->>N: index.html (bind mount)
-  N->>N: apply security headers<br/>(CSP, HSTS, X-Frame-Options, etc.)
+  N->>N: apply security headers (CSP, HSTS, X-Frame-Options, etc.)
   N-->>U: 200 OK + index.html + headers
 
   Note over U,SSL: === Page Load ===
@@ -508,8 +507,8 @@ sequenceDiagram
 
   Note over U,SSL: === Login Attempt ===
   U->>U: fill user + password
-  U->>N: POST /api/auth<br/>{user, pass, token}
-  Note over N: limit_req: check 3r/min<br/>burst=2, nodelay
+  U->>N: POST /api/auth (user, pass, token)
+  Note over N: limit_req: check 3r/min burst=2 nodelay
   N->>N: generate $request_id (hex)
   N->>N: map $request_id → error message
   N->>N: Set-Cookie: ms_session + __Host-ms_privacy

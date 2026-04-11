@@ -29,11 +29,11 @@ flowchart TD
     E6["COMPOSE_CMD: docker compose / docker-compose"]
   end
 
-  INSTALL_ARGS -. source .-> A
-  A -. export -> B
-  B -. export -> C
-  C -. export -> D
-  D -. export -> E
+  INSTALL_ARGS -.->|source| A
+  A -.->|export| B
+  B -.->|export| C
+  C -.->|export| D
+  D -.->|export| E
 ```
 
 ## Phase 1 — Prerequisites
@@ -299,10 +299,10 @@ graph LR
   end
 
   Install --> P1 --> P2 --> P3 --> P4 --> P5
-  P4 -. создает .-> NC_HTTP
-  P5 -. запускает .-> DC
-  Update -. обновляет .-> DC
-  Delete -. удаляет .-> DC
+  P4 -.->|создает| NC_HTTP
+  P5 -.->|запускает| DC
+  Update -.->|обновляет| DC
+  Delete -.->|удаляет| DC
 
   style Install fill:#bbf
   style Update fill:#bfb
@@ -321,29 +321,28 @@ stateDiagram-v2
   [*] --> Определение: install.sh запускается
   Определение --> HTTP: нет домена / IP
   Определение --> SelfSigned: IP-адрес без домена
-  Determination --> LetsEncrypt: есть домен + certbot
-
-  state HTTP {
-    [*] --> Создание_nginx_http: nginx-http.conf без SSL
-    Создание_nginx_http --> Удаление_443: docker-compose.yml
-    Удаление_443 --> Запуск: port 80 только
-  }
-
-  state SelfSigned {
-    [*] --> Генерация_cert: openssl req -x509
-    Генерация_cert --> SelfSignMount: /etc/letsencrypt/live/IP
-    SelfSignMount --> Запуск_SSL: port 80 + 443
-  }
-
-  state LetsEncrypt {
-    [*] --> Certbot: certbot certonly
-    Certbot --> PEMount: /etc/letsencrypt/live/DOMAIN
-    PEMount --> Запуск_SSL
-  }
+  Определение --> LetsEncrypt: есть домен + certbot
 
   HTTP --> [*]: curl http://localhost
   SelfSigned --> [*]: curl -k https://localhost
   LetsEncrypt --> [*]: curl -k https://localhost
+
+  note right of HTTP
+    nginx-http.conf без SSL
+    docker-compose: port 80 only
+  end note
+
+  note right of SelfSigned
+    openssl req -x509
+    /etc/letsencrypt/live/IP
+    port 80 + 443
+  end note
+
+  note right of LetsEncrypt
+    certbot certonly --standalone
+    /etc/letsencrypt/live/DOMAIN
+    port 80 + 443
+  end note
 ```
 
 ## Переменные между фазами (export chain)
@@ -367,7 +366,7 @@ sequenceDiagram
   P3-->>I: SSL_CERT_PATH, SSL_KEY_PATH, SSL_MODE
 
   I->>P4: source phase4-apply.sh
-  P4-->>I: nginx.conf / nginx-http.conf<br/>docker-compose.yml обновлены
+  P4-->>I: nginx.conf / nginx-http.conf и docker-compose.yml обновлены
 
   I->>P5: source phase5-start.sh
   P5-->>I: curl проверка, сводка
