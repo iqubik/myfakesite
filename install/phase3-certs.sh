@@ -21,7 +21,7 @@ if [[ "$MODE" == "http" ]]; then
   log "HTTP-режим: SSL не требуется"
   SSL_MODE="none"
   export SSL_MODE
-  exit 0
+  return 0
 fi
 
 #################################
@@ -62,7 +62,7 @@ if [[ -n "$CUSTOM_CERT" && -n "$CUSTOM_KEY" ]]; then
   log "Сертификат действителен до: $expiry"
 
   export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-  exit 0
+  return 0
 fi
 
 #################################
@@ -91,7 +91,7 @@ if [[ "$MODE" == "https-selfsigned" ]]; then
 
   SSL_MODE="selfsigned"
   export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-  exit 0
+  return 0
 fi
 
 #################################
@@ -112,7 +112,7 @@ if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
 
     expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
     log "Действителен до: $expiry"
-    exit 0
+    return 0
   fi
 fi
 
@@ -132,7 +132,7 @@ if [[ "$NON_INTERACTIVE" == "true" ]]; then
         expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
         log "Действителен до: $expiry"
         export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-        exit 0
+        return 0
       fi
     fi
     warn "certbot не смог получить сертификат. Переключаемся на self-signed..."
@@ -167,7 +167,7 @@ else
           expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
           log "Действителен до: $expiry"
           export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-          exit 0
+          return 0
         fi
       fi
       warn "certbot не смог получить сертификат."
