@@ -186,7 +186,18 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 - `docker compose down --volumes --remove-orphans`
 - Удаляет Docker-образы проекта
 - `rm -rf` директории проекта
-- Чистит self-signed сертификаты (localhost)
+- Удаляет наши метаданные (`/etc/myfakesite/`, cron job certbot)
+
+> **Важно:** `delete.sh` **не трогает** `/etc/letsencrypt/` — сертификаты остаются на сервере, другие сервисы могут их использовать.
+
+**Поведение `install.sh` с существующими сертификатами:**
+
+| Ситуация | Поведение |
+|----------|-----------|
+| Наш LE cert уже есть | Переиспользует, не вызывает certbot |
+| Наш self-signed уже есть | Пропускает генерацию |
+| Чужой cert в том же пути | Предупреждает + использует его |
+| Custom `-c/-k` | Перезаписывает (пользователь явно попросил) |
 
 #### Параметры скриптов
 
@@ -382,7 +393,18 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 - `docker compose down --volumes --remove-orphans`
 - Removes project Docker images
 - `rm -rf` project directory
-- Cleans up self-signed certificates (localhost)
+- Removes our metadata (`/etc/myfakesite/`, certbot cron job)
+
+> **Important:** `delete.sh` does **not** touch `/etc/letsencrypt/` — certificates remain on the server, other services can use them.
+
+**`install.sh` behavior with existing certificates:**
+
+| Situation | Behavior |
+|-----------|----------|
+| Our LE cert already exists | Reuses it, skips certbot |
+| Our self-signed already exists | Skips generation |
+| Foreign cert in same path | Warns + uses it |
+| Custom `-c/-k` | Overwrites (user explicitly requested) |
 
 #### Script Parameters
 

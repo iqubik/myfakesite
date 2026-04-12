@@ -208,6 +208,23 @@ if [[ "$SSL_MODE" != "letsencrypt" ]]; then
   SSL_CERT_PATH="${SSL_DIR}/fullchain.pem"
   SSL_KEY_PATH="${SSL_DIR}/privkey.pem"
 
+  # Проверяем, не занят ли путь существующим чужим сертификатом
+  if [[ -f "$SSL_CERT_PATH" && -f "$SSL_KEY_PATH" ]]; then
+    local existing_issuer
+    existing_issuer=$(openssl x509 -in "$SSL_CERT_PATH" -noout -issuer 2>/dev/null || true)
+    if [[ -n "$existing_issuer" ]] && ! echo "$existing_issuer" | grep -qi "MySphere\|fake"; then
+      warn "В $SSL_DIR уже есть сертификат: $existing_issuer"
+      warn "Используем его вместо генерации нового"
+      if echo "$existing_issuer" | grep -qi "Let's Encrypt"; then
+        SSL_MODE="letsencrypt"
+      else
+        SSL_MODE="custom"
+      fi
+      export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
+      return 0
+    fi
+  fi
+
   log "Генерируем self-signed сертификат..."
   mkdir -p "$SSL_DIR"
   openssl req -x509 -nodes -days 365 \

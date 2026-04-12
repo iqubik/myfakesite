@@ -125,11 +125,15 @@ docker images --filter "reference=myfakesite*" --filter "reference=fakesite*" --
 docker image prune -f 2>/dev/null || true
 
 #################################
-# CLEAN SELF-SIGNED CERTS (если были)
+# CLEAN /etc/myfakesite + наш cron
 #################################
-if [[ -d "/etc/letsencrypt/live/localhost" ]]; then
-  log "Удаляем self-signed сертификаты localhost..."
-  rm -rf "/etc/letsencrypt/live/localhost"
+if [[ -d /etc/myfakesite ]]; then
+  log "Удаляем метаданные /etc/myfakesite"
+  rm -rf /etc/myfakesite
+fi
+if [[ -f /etc/cron.d/certbot-fakesite ]]; then
+  log "Удаляем cron job certbot"
+  rm -f /etc/cron.d/certbot-fakesite
 fi
 
 #################################
