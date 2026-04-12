@@ -202,6 +202,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 | `-b <branch>` | install, update | Ветка |
 | `-p <path>` | все | Папка проекта (по умолчанию `/opt/myfakesite`) |
 | `-d <domain>` | install | Домен для nginx (пустой = localhost, HTTP) |
+| `-c <path>` | install | Путь к кастомному SSL-сертификату |
+| `-k <path>` | install | Путь к кастомному SSL-ключу |
 | `-f` | delete | Без подтверждения |
 | `-h` | все | Показать справку
 
@@ -399,6 +401,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 | `-b <branch>` | install, update | Branch |
 | `-p <path>` | all | Project directory (default: `/opt/myfakesite`) |
 | `-d <domain>` | install | Domain for nginx (empty = localhost, HTTP) |
+| `-c <path>` | install | Path to custom SSL certificate |
+| `-k <path>` | install | Path to custom SSL key |
 | `-f` | delete | Force mode (no confirmation) |
 | `-h` | all | Show help
 
