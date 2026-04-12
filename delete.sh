@@ -105,6 +105,14 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
   if [[ -f docker-compose.yml ]]; then
     log "Останавливаем контейнеры MySphere fakesite"
     docker compose down --volumes --remove-orphans || warn "Ошибка при docker compose down"
+
+    # VERIFY: контейнеры остановлены
+    remaining=$(docker ps -a --filter 'name=fakesite' --format '{{.Names}}' 2>/dev/null || true)
+    if [[ -n "$remaining" ]]; then
+      warn "Остались контейнеры: $remaining"
+    else
+      log "Контейнеры удалены ✓"
+    fi
   else
     warn "docker-compose.yml не найден"
   fi
@@ -124,6 +132,14 @@ docker images --filter "reference=myfakesite*" --filter "reference=fakesite*" --
 # Чистим dangling (битые) образы
 docker image prune -f 2>/dev/null || true
 
+# VERIFY: образы удалены
+remaining_imgs=$(docker images --filter "reference=fakesite*" --format '{{.Repository}}:{{.Tag}}' 2>/dev/null || true)
+if [[ -n "$remaining_imgs" ]]; then
+  warn "Остались образы: $remaining_imgs"
+else
+  log "Образы проекта удалены ✓"
+fi
+
 #################################
 # REMOVE DIRECTORY
 #################################
@@ -134,6 +150,13 @@ fi
 
 log "Удаляем $PROJECT_DIR"
 rm -rf "$PROJECT_DIR"
+
+# VERIFY: директория удалена
+if [[ -d "$PROJECT_DIR" ]]; then
+  warn "Директория $PROJECT_DIR всё ещё существует!"
+else
+  log "Директория удалена ✓"
+fi
 
 #################################
 # DONE
