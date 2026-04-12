@@ -108,8 +108,20 @@ if [[ ! -d "$PROJECT_DIR" ]]; then
   else
     [[ -n "$remaining_containers" ]] && warn "Остались контейнеры: $remaining_containers"
     [[ -n "$remaining_images" ]] && warn "Остались образы: $remaining_images"
-    [[ -n "$remaining_volumes" ]] && warn "Остались тома: $remaining_volumes"
-    [[ -n "$remaining_networks" ]] && warn "Остались сети: $remaining_networks"
+
+    # Чистим оставшиеся volumes
+    if [[ -n "$remaining_volumes" ]]; then
+      echo "$remaining_volumes" | xargs -r docker volume rm -f 2>/dev/null || true
+      log "Оставшиеся тома удалены ✓"
+    fi
+
+    # Чистим оставшиеся сети
+    if [[ -n "$remaining_networks" ]]; then
+      echo "$remaining_networks" | while read -r net; do
+        docker network rm "$net" 2>/dev/null || warn "Не удалось удалить сеть: $net"
+      done
+      log "Оставшиеся сети удалены ✓"
+    fi
   fi
 
   log "✔ MySphere fakesite уже удалён"
