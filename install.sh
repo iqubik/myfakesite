@@ -223,13 +223,63 @@ check_containers_running() {
 }
 
 # ─── Phase scripts ─────────────────────────────────────────
-# Determine script directory (works for both direct execution and curl|bash)
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-PHASE_DIR="$_SCRIPT_DIR/install"
+# When run via `curl | bash`, the script has no file path.
+# Phase files need to be fetched or located.
+#
+# Strategy:
+#   1. If executed as a file (./install.sh) → use dirname/install
+#   2. If PROJECT_DIR already has install/ → use it (re-run)
+#   3. If running from piped curl → download phases from GitHub into /tmp
 
-# Validate phase directory exists
-if [[ ! -d "$PHASE_DIR" ]]; then
-  die "Директория фаз установки не найдена: $PHASE_DIR"
+_resolve_phase_dir() {
+  local dir=""
+
+  # Strategy 1: direct file execution
+  if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/install"
+    if [[ -d "$dir" ]]; then
+      echo "$dir"
+      return 0
+    fi
+  fi
+
+  # Strategy 2: PROJECT_DIR already cloned (re-run scenario)
+  if [[ -n "$PROJECT_DIR" && -d "$PROJECT_DIR/install" ]]; then
+    echo "$PROJECT_DIR/install"
+    return 0
+  fi
+
+  # Strategy 3: download phase files from GitHub into /tmp/install
+  if [[ -z "$dir" || ! -d "$dir" ]]; then
+    local tmp_install="/tmp/myfakesite-install"
+    if [[ ! -d "$tmp_install" ]]; then
+      mkdir -p "$tmp_install"
+      local base_url="https://raw.githubusercontent.com/${REPO_URL##*/github.com\//}/${BRANCH}/install"
+      # Extract org/repo from REPO_URL
+      local repo_path="${REPO_URL#https://github.com/}"
+      repo_path="${repo_path#https://github.com/}"
+      repo_path="${repo_path%.git}"
+      base_url="https://raw.githubusercontent.com/${repo_path}/${BRANCH}/install"
+
+      warn "Загружаем файлы фаз из репозитория..."
+      for phase_file in phase1-prereqs.sh phase2-domain.sh phase3-certs.sh phase4-apply.sh phase5-start.sh; do
+        if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>/dev/null; then
+          die "Не удалось загрузить $phase_file из ${base_url}"
+        fi
+      done
+      log "Файлы фаз загружены ✓"
+    fi
+    echo "$tmp_install"
+    return 0
+  fi
+
+  echo ""
+  return 1
+}
+
+PHASE_DIR="$(_resolve_phase_dir)"
+if [[ -z "$PHASE_DIR" || ! -d "$PHASE_DIR" ]]; then
+  die "Директория фаз установки не найдена."
 fi
 
 export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
