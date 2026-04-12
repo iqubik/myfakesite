@@ -93,6 +93,20 @@ log "Начинаем удаление MySphere fakesite"
 
 if [[ ! -d "$PROJECT_DIR" ]]; then
   warn "Директория $PROJECT_DIR не найдена — удалять нечего"
+
+  # VERIFY: убеждаемся что и контейнеров/образов проекта нет
+  remaining_containers=$(docker ps -a --filter 'name=fakesite' --format '{{.Names}}' 2>/dev/null || true)
+  remaining_images=$(docker images --filter "reference=fakesite*" --format '{{.Repository}}' 2>/dev/null || true)
+
+  if [[ -z "$remaining_containers" && -z "$remaining_images" ]]; then
+    log "Контейнеры проекта отсутствуют ✓"
+    log "Образы проекта отсутствуют ✓"
+  else
+    [[ -n "$remaining_containers" ]] && warn "Остались контейнеры: $remaining_containers"
+    [[ -n "$remaining_images" ]] && warn "Остались образы: $remaining_images"
+  fi
+
+  log "✔ MySphere fakesite уже удалён"
   exit 0
 fi
 
