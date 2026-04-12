@@ -1,4 +1,9 @@
 <!-- file: README.md v1.0 -->
+
+[🇷🇺 Русский](#-русский) | [🇬🇧 English](#-english)
+
+---
+
 # MySphere — Учебный проект: Mock API & Frontend
 
 > **Mock API Usage Tutorial** — как имитировать бэкенд на уровне Nginx для разработки и тестирования фронтенда без реального сервера.

@@ -1,4 +1,9 @@
 <!-- file: TUTORIAL.md v1.0 -->
+
+[🇷🇺 Русский](#-часть-1-зачем-нужен-mock-api) | [🇬🇧 English](#part-2-english-translation--full-tutorial)
+
+---
+
 # MySphere — Урок: Mock API в Nginx. Полный разбор проекта
 
 > **Цель урока:** понять, как имитировать полноценный бэкенд с помощью одного лишь Nginx, и зачем это нужно при разработке фронтенда.
@@ -977,6 +982,8 @@ location ^~ /api/ {
 
 ---
 
+[🔝 В начало](#mysphere--урок-mock-api-в-nginx-полный-разбор-проекта) | [🇷🇺 Русская часть](#-часть-1-зачем-нужен-mock-api)
+
 ---
 
 # Part 2. English Translation — Full Tutorial
@@ -1748,3 +1755,7 @@ location ^~ /api/ {
 ---
 
 **Summary:** Mock API at the Nginx level is a powerful technique that lets frontend developers work independently without waiting for the backend. You control every header, every status code, every byte of the response body — and all of this without a single line of server-side code.
+
+---
+
+[🔝 В начало](#mysphere--урок-mock-api-в-nginx-полный-разбор-проекта) | [🇷🇺 Русская часть](#-часть-1-зачем-нужен-mock-api)
