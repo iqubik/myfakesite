@@ -125,18 +125,6 @@ docker images --filter "reference=myfakesite*" --filter "reference=fakesite*" --
 docker image prune -f 2>/dev/null || true
 
 #################################
-# CLEAN /etc/myfakesite + наш cron
-#################################
-if [[ -d /etc/myfakesite ]]; then
-  log "Удаляем метаданные /etc/myfakesite"
-  rm -rf /etc/myfakesite
-fi
-if [[ -f /etc/cron.d/certbot-fakesite ]]; then
-  log "Удаляем cron job certbot"
-  rm -f /etc/cron.d/certbot-fakesite
-fi
-
-#################################
 # REMOVE DIRECTORY
 #################################
 # Sanity check перед rm -rf
