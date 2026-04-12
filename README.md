@@ -49,6 +49,8 @@
 
 #### ⚡ Быстрая установка (одной командой)
 
+> Это **опциональный** способ. Если предпочитаете ручной запуск — просто `git clone` и `docker compose up -d` (см. ниже).
+
 ```bash
 # HTTP-режим, localhost
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
@@ -59,6 +61,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 # С self-signed сертификатом (по IP)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
 ```
+
+Скрипт интерактивный — при необходимости задаст вопросы (выбор порта, тип сертификата и т.д.). Для полностью автоматической установки укажите `-d`.
 
 > **Требования:** Linux-сервер с Docker, Docker Compose и `curl`. Скрипт запускается от **root**.
 
@@ -204,6 +208,8 @@ The concept is simple: you want to build a polished single-page application with
 
 #### ⚡ Quick Install (one command)
 
+> This is **optional**. If you prefer manual setup — just `git clone` and `docker compose up -d` (see below).
+
 ```bash
 # HTTP mode, localhost
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
@@ -214,6 +220,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 # With self-signed certificate (by IP)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
 ```
+
+The installer is interactive — it may ask questions (port conflicts, certificate type, etc.). For fully automated install, pass `-d`.
 
 > **Requirements:** Linux server with Docker, Docker Compose, and `curl`. The script runs as **root**.
 
