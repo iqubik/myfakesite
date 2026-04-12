@@ -87,6 +87,9 @@ fi
 #################################
 need_root
 resolve_compose_cmd
+echo ""
+echo "[INFO] Версия скрипта: 1.1"
+echo ""
 log "Compose команда: ${COMPOSE_CMD[*]}"
 
 log "Начинаем удаление MySphere fakesite"

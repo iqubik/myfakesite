@@ -93,6 +93,8 @@ echo "==================================================="
 echo "  MySphere — Обновление"
 echo "==================================================="
 echo ""
+echo "[INFO] Версия скрипта: 1.1"
+echo ""
 
 [[ -d "$PROJECT_DIR" ]] || die "Папка проекта не найдена: $PROJECT_DIR"
 [[ -f "$PROJECT_DIR/docker-compose.yml" ]] || die "Не найден docker-compose.yml в $PROJECT_DIR"
