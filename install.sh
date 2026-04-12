@@ -80,7 +80,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1.2"
+echo "[INFO] Версия скрипта: 1.1.3"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────
@@ -289,11 +289,11 @@ fi
 
 export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
 
-# ─── Restore stdin for interactive prompts ─────────────────
 # При запуске через `curl | sudo bash` stdin — пустой pipe.
-# Перенаправляем на терминал, чтобы read в фазах работал.
-if [[ ! -t 0 && -e /dev/tty ]]; then
-  exec < /dev/tty
+# stderr (fd 2) при этом остаётся терминалом.
+# Копируем fd0 из fd2, чтобы `read` в фазах работал с терминала.
+if [[ ! -t 0 && -t 2 ]]; then
+  exec 0<&2
 fi
 
 # Phase 1: Prerequisites + git clone/pull
