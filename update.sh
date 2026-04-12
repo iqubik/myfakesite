@@ -178,6 +178,24 @@ if [[ -f "data/VERSION" ]]; then
 fi
 
 #################################
+# CERTBOT RENEWAL SETUP (если LE)
+#################################
+LE_CERT="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
+if [[ "$MODE" == "https" && -f "$LE_CERT" && command -v certbot >/dev/null 2>&1 ]]; then
+  log "Проверяем авто-обновление сертификатов..."
+  if [[ ! -f /etc/cron.d/certbot-fakesite ]]; then
+    log "Настраиваем авто-обновление сертификатов..."
+    HOOK_SCRIPT="/opt/myfakesite/install/certbot-renew-hook.sh"
+    cat > /etc/cron.d/certbot-fakesite <<CRON
+# MySphere fakesite — certbot auto-renewal (webroot, zero-downtime)
+0 3 * * * root certbot renew --quiet --deploy-hook "${HOOK_SCRIPT}" > /var/log/certbot-fakesite.log 2>&1
+CRON
+    chmod 644 /etc/cron.d/certbot-fakesite
+    log "cron job создан ✓"
+  fi
+fi
+
+#################################
 # RESTART CONTAINERS
 #################################
 log "Перезапуск контейнеров..."

@@ -15,6 +15,7 @@ services:
       - ./data/apple-touch-icon.png:/usr/share/nginx/html/apple-touch-icon.png:ro
       - ./data/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./data/VERSION:/usr/share/nginx/html/VERSION:ro
+      - /var/www/acme-challenge:/usr/share/nginx/html/.well-known/acme-challenge
       - ./data/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt/live/YOUDOMEN.XXX/fullchain.pem:/etc/nginx/certs/fakesite.crt:ro
       - /etc/letsencrypt/live/YOUDOMEN.XXX/privkey.pem:/etc/nginx/certs/fakesite.key:ro

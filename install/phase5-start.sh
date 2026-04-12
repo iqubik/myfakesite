@@ -56,6 +56,34 @@ else
 fi
 
 #################################
+# CERTBOT RENEWAL SETUP
+#################################
+if [[ "${SSL_MODE:-}" == "letsencrypt" ]]; then
+  log "Настраиваем авто-обновление сертификатов..."
+
+  HOOK_SCRIPT="/opt/myfakesite/install/certbot-renew-hook.sh"
+
+  if command -v certbot >/dev/null 2>&1; then
+    certbot update_symlinks 2>/dev/null || true
+
+    # webroot renew — контейнер НЕ останавливается
+    # certbot пишет challenge в /var/www/acme-challenge
+    # nginx в контейнере монтирует этот путь и отдаёт challenge
+    # deploy-hook вызывается ТОЛЬКО при реальном обновлении cert
+    cat > /etc/cron.d/certbot-fakesite <<CRON
+# MySphere fakesite — certbot auto-renewal (webroot, zero-downtime)
+# certbot renew проверяет сертификаты ежедневно, обновляет если <30 дней до истечения
+0 3 * * * root certbot renew --quiet --deploy-hook "${HOOK_SCRIPT}" > /var/log/certbot-fakesite.log 2>&1
+CRON
+    chmod 644 /etc/cron.d/certbot-fakesite
+
+    log "cron job создан: ежедневная проверка в 3:00 (webroot, без даунтайма) ✓"
+  else
+    warn "certbot не найден — авто-обновление сертификатов не настроено"
+  fi
+fi
+
+#################################
 # SUMMARY
 #################################
 echo ""

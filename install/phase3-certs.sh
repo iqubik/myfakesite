@@ -116,28 +116,70 @@ if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
   fi
 fi
 
-# Нет LE — решаем
-if [[ "$NON_INTERACTIVE" == "true" ]]; then
-  # Автоматический режим: пробуем certbot, иначе self-signed
-  if command -v certbot >/dev/null 2>&1; then
-    log "Пробуем получить Let's Encrypt сертификат..."
-    if certbot certonly --standalone -d "$DOMAIN" \
-        --non-interactive --agree-tos --register-unsafely-without-email 2>&1; then
-      if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
-        SSL_CERT_PATH="$LE_CERT"
-        SSL_KEY_PATH="$LE_KEY"
-        SSL_MODE="letsencrypt"
-        log "Let's Encrypt сертификат получен ✓"
+# Функция получения LE сертификата
+_get_le_cert() {
+  local certbot_bin
+  certbot_bin=$(command -v certbot 2>/dev/null || true)
 
-        expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
-        log "Действителен до: $expiry"
-        export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-        return 0
-      fi
+  if [[ -z "$certbot_bin" ]]; then
+    log "Устанавливаем certbot..."
+    if command -v apt-get >/dev/null 2>&1; then
+      apt-get update -qq && apt-get install -y -qq certbot 2>&1 || return 1
+    elif command -v dnf >/dev/null 2>&1; then
+      dnf install -y certbot 2>&1 || return 1
+    elif command -v yum >/dev/null 2>&1; then
+      yum install -y certbot 2>&1 || return 1
+    else
+      warn "Не удалось установить certbot"
+      return 1
     fi
+
+    certbot_bin=$(command -v certbot 2>/dev/null || true)
+    [[ -n "$certbot_bin" ]] || { warn "certbot установлен, но не найден в PATH"; return 1; }
+    log "certbot установлен ✓"
+  fi
+
+  # Получаем cert через standalone (контейнеры ещё не запущены, порт 80 свободен)
+  log "Получаем Let's Encrypt сертификат для $DOMAIN..."
+
+  if "$certbot_bin" certonly --standalone -d "$DOMAIN" \
+    --non-interactive \
+    --agree-tos \
+    --register-unsafely-without-email 2>&1; then
+
+    if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
+      SSL_CERT_PATH="$LE_CERT"
+      SSL_KEY_PATH="$LE_KEY"
+      SSL_MODE="letsencrypt"
+      log "Let's Encrypt сертификат получен ✓"
+
+      # Переключаем renewal config на webroot для zero-downtime обновления
+      local renewal_conf="/etc/letsencrypt/renewal/${DOMAIN}.conf"
+      if [[ -f "$renewal_conf" ]]; then
+        mkdir -p /var/www/acme-challenge/.well-known/acme-challenge
+        sed -i 's/authenticator = standalone/authenticator = webroot/' "$renewal_conf"
+        # Заменяем или добавляем webroot_path
+        if grep -q 'webroot_path' "$renewal_conf"; then
+          sed -i "s|webroot_path = .*|webroot_path = /var/www/acme-challenge|" "$renewal_conf"
+        else
+          sed -i "/authenticator = webroot/a webroot_path = /var/www/acme-challenge" "$renewal_conf"
+        fi
+        log "Renewal config переключён на webroot (без даунтайма) ✓"
+      fi
+
+      expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
+      log "Действителен до: $expiry"
+      export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+if [[ "$NON_INTERACTIVE" == "true" ]]; then
+  if ! _get_le_cert; then
     warn "certbot не смог получить сертификат. Переключаемся на self-signed..."
-  else
-    log "certbot не установлен — генерируем self-signed..."
   fi
 else
   # Интерактивный режим — спрашиваем
@@ -154,48 +196,30 @@ else
   read -r -p "Выбор [2]: " cert_choice
 
   if [[ "$cert_choice" == "1" ]]; then
-    if command -v certbot >/dev/null 2>&1; then
-      log "Запускаем certbot..."
-      if certbot certonly --standalone -d "$DOMAIN" \
-          --non-interactive --agree-tos --register-unsafely-without-email 2>&1; then
-        if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
-          SSL_CERT_PATH="$LE_CERT"
-          SSL_KEY_PATH="$LE_KEY"
-          SSL_MODE="letsencrypt"
-          log "Let's Encrypt сертификат получен ✓"
-
-          expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
-          log "Действителен до: $expiry"
-          export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
-          return 0
-        fi
-      fi
+    if ! _get_le_cert; then
       warn "certbot не смог получить сертификат."
-    else
-      warn "certbot не установлен. Установите: apt install certbot"
     fi
-
-    echo ""
-    echo "  Переключаемся на self-signed сертификат..."
   fi
 fi
 
-# Self-signed fallback
-SSL_DIR="/etc/letsencrypt/live/${DOMAIN}"
-SSL_CERT_PATH="${SSL_DIR}/fullchain.pem"
-SSL_KEY_PATH="${SSL_DIR}/privkey.pem"
+# Если LE не получен — self-signed fallback
+if [[ "$SSL_MODE" != "letsencrypt" ]]; then
+  SSL_DIR="/etc/letsencrypt/live/${DOMAIN}"
+  SSL_CERT_PATH="${SSL_DIR}/fullchain.pem"
+  SSL_KEY_PATH="${SSL_DIR}/privkey.pem"
 
-log "Генерируем self-signed сертификат..."
-mkdir -p "$SSL_DIR"
-openssl req -x509 -nodes -days 365 \
-  -newkey rsa:2048 \
-  -keyout "$SSL_KEY_PATH" \
-  -out "$SSL_CERT_PATH" \
-  -subj "/CN=${DOMAIN}" \
-  -addext "subjectAltName=DNS:${DOMAIN}" 2>/dev/null
+  log "Генерируем self-signed сертификат..."
+  mkdir -p "$SSL_DIR"
+  openssl req -x509 -nodes -days 365 \
+    -newkey rsa:2048 \
+    -keyout "$SSL_KEY_PATH" \
+    -out "$SSL_CERT_PATH" \
+    -subj "/CN=${DOMAIN}" \
+    -addext "subjectAltName=DNS:${DOMAIN}" 2>/dev/null
 
-SSL_MODE="selfsigned"
-warn "Self-signed сертификат создан (браузер покажет предупреждение)"
-warn "Для настоящего: certbot certonly --standalone -d ${DOMAIN}"
+  SSL_MODE="selfsigned"
+  warn "Self-signed сертификат создан (браузер покажет предупреждение)"
+  warn "Для настоящего: apt install certbot && certbot certonly --standalone -d ${DOMAIN}"
+fi
 
 export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
