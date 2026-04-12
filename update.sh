@@ -172,9 +172,33 @@ export DOMAIN MODE SSL_CERT_PATH="" SSL_KEY_PATH=""
 if [[ -f "data/VERSION" ]]; then
   APP_VERSION=$(tr -d '[:space:]' < data/VERSION)
   log "Версия приложения: ${APP_VERSION}"
-  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/index.html 2>/dev/null || true
-  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/nginx.conf 2>/dev/null || true
-  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/status.php 2>/dev/null || true
+
+  # Стратегия: заменяем VERSION_PLACEHOLDER ИЛИ текущую версию vX.X.X
+  # Это гарантирует работу и при первом запуске (placeholder),
+  # и при повторных обновлениях (версия уже заменена)
+  _bump_version() {
+    local file="$1"
+    local new_ver="$2"
+    [[ -f "$file" ]] || return 0
+
+    if grep -q 'VERSION_PLACEHOLDER' "$file" 2>/dev/null; then
+      sed -i "s/VERSION_PLACEHOLDER/${new_ver}/g" "$file"
+    else
+      # Ищем текущую версию: с "v" (v1.2.3) или без (1.2.3)
+      local cur
+      cur=$(grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' "$file" 2>/dev/null | head -n1 || true)
+      if [[ -z "$cur" ]]; then
+        cur=$(grep -oP "(?<=[\"'])([0-9]+\.[0-9]+\.[0-9]+)(?=[\"'])" "$file" 2>/dev/null | head -n1 || true)
+      fi
+      if [[ -n "$cur" ]]; then
+        sed -i "s/${cur}/${new_ver}/g" "$file"
+      fi
+    fi
+  }
+
+  _bump_version data/index.html "$APP_VERSION"
+  _bump_version data/nginx.conf "$APP_VERSION"
+  _bump_version data/status.php "$APP_VERSION"
 fi
 
 #################################
