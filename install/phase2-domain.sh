@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# file: install/phase2-domain.sh v1.0
+# file: install/phase2-domain.sh v2.0
 # Phase 2: Domain/IP detection, port checks, UFW
 # Sets: MODE, DOMAIN
-# Expects: DOMAIN, PROJECT_DIR, log/warn/die
+# Expects: DOMAIN, PROJECT_DIR, NON_INTERACTIVE, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 2: Домен, порты, фаервол"
@@ -16,53 +16,52 @@ is_ip_address() {
 # DOMAIN / IP DETECTION
 #################################
 if [[ -z "$DOMAIN" ]]; then
-  echo ""
-  echo "  Как будет доступен сайт?"
-  echo "    • Оставьте пустым  → HTTP, http://localhost (для тестирования)"
-  echo "    • IP-адрес         → HTTPS, self-signed сертификат"
-  echo "    • Домен            → HTTPS, Let's Encrypt или self-signed"
-  echo ""
-  read -r -p "Введите домен или IP-адрес [localhost]: " DOMAIN
-fi
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    log "Неинтерактивный режим: DOMAIN не указан — HTTP, localhost"
+    MODE="http"
+    DOMAIN="localhost"
+  else
+    echo ""
+    echo "  Как будет доступен сайт?"
+    echo "    • Оставьте пустым  → HTTP, http://localhost (для тестирования)"
+    echo "    • IP-адрес         → HTTPS, self-signed сертификат"
+    echo "    • Домен            → HTTPS, Let's Encrypt или self-signed"
+    echo ""
+    read -r -p "Введите домен или IP-адрес [localhost]: " DOMAIN
 
-# Определяем режим
-if [[ -z "$DOMAIN" || "$DOMAIN" == "localhost" ]]; then
-  MODE="http"
-  DOMAIN="localhost"
-  log "Режим: HTTP, порт 80 (localhost)"
-elif is_ip_address "$DOMAIN"; then
-  MODE="https-selfsigned"
-  log "Режим: HTTPS, self-signed сертификат для IP $DOMAIN"
+    if [[ -z "$DOMAIN" || "$DOMAIN" == "localhost" ]]; then
+      MODE="http"
+      DOMAIN="localhost"
+    elif is_ip_address "$DOMAIN"; then
+      MODE="https-selfsigned"
+    else
+      MODE="https-domain"
+    fi
+  fi
 else
-  MODE="https-domain"
-  log "Режим: HTTPS для домена $DOMAIN"
+  # DOMAIN задан через -d
+  if [[ "$DOMAIN" == "localhost" ]]; then
+    MODE="http"
+  elif is_ip_address "$DOMAIN"; then
+    MODE="https-selfsigned"
+  else
+    MODE="https-domain"
+  fi
 fi
 
 export MODE
 
+if [[ "$MODE" == "http" ]]; then
+  log "Режим: HTTP, порт 80 (localhost)"
+elif [[ "$MODE" == "https-selfsigned" ]]; then
+  log "Режим: HTTPS, self-signed сертификат для IP $DOMAIN"
+else
+  log "Режим: HTTPS для домена $DOMAIN"
+fi
+
 #################################
 # PORT CHECK
 #################################
-check_port() {
-  local port=$1
-  local info
-  info=$(ss -tlnp "sport = :${port}" 2>/dev/null | grep -v "^State" || true)
-
-  if [[ -n "$info" ]]; then
-    local pid proc_name
-    pid=$(echo "$info" | grep -oP 'pid=\K[0-9]+' | head -1 || true)
-    if [[ -n "$pid" ]]; then
-      proc_name=$(ps -p "$pid" -o comm= 2>/dev/null || echo "unknown")
-    else
-      proc_name="unknown"
-      pid="N/A"
-    fi
-    echo "${pid}:${proc_name}"
-    return 1
-  fi
-  return 0
-}
-
 echo ""
 log "Проверка портов..."
 
@@ -71,6 +70,11 @@ p80=$(check_port 80) || true
 if [[ -n "$p80" ]]; then
   IFS=':' read -r p80_pid p80_name <<< "$p80"
   warn "Порт 80 занят: ${p80_name} (PID ${p80_pid})"
+
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    die "Порт 80 занят (${p80_name}). Освободите порт и повторите установку."
+  fi
+
   echo ""
   echo "  MySphere требует порт 80."
   echo "  1) Остановить ${p80_name} и продолжить"
@@ -102,6 +106,11 @@ if [[ "$MODE" != "http" ]]; then
   if [[ -n "$p443" ]]; then
     IFS=':' read -r p443_pid p443_name <<< "$p443"
     warn "Порт 443 занят: ${p443_name} (PID ${p443_pid})"
+
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+      die "Порт 443 занят (${p443_name}). Освободите порт и повторите установку."
+    fi
+
     echo ""
     echo "  MySphere требует порт 443 для HTTPS."
     echo "  1) Остановить ${p443_name} и продолжить"

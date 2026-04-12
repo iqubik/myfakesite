@@ -52,17 +52,20 @@
 > Это **опциональный** способ. Если предпочитаете ручной запуск — просто `git clone` и `docker compose up -d` (см. ниже).
 
 ```bash
-# HTTP-режим, localhost
+# HTTP-режим, localhost (молча, без вопросов)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -y
+
+# С доменом и HTTPS (Let's Encrypt, молча)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com -y
+
+# С self-signed сертификатом (по IP, молча)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+
+# Интерактивный режим (скрипт задаст вопросы)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
-
-# С доменом и HTTPS (Let's Encrypt)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com
-
-# С self-signed сертификатом (по IP)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
 ```
 
-Скрипт интерактивный — при необходимости задаст вопросы (выбор порта, тип сертификата и т.д.). Для полностью автоматической установки укажите `-d`.
+Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся с ошибкой. Без `-y` скрипт предложит варианты действий.
 
 > **Требования:** Linux-сервер с Docker, Docker Compose и `curl`. Скрипт запускается от **root**.
 
@@ -211,17 +214,20 @@ The concept is simple: you want to build a polished single-page application with
 > This is **optional**. If you prefer manual setup — just `git clone` and `docker compose up -d` (see below).
 
 ```bash
-# HTTP mode, localhost
+# HTTP mode, localhost (silent, no prompts)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -y
+
+# With domain and HTTPS (Let's Encrypt, silent)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com -y
+
+# With self-signed certificate (by IP, silent)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+
+# Interactive mode (script will ask questions)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
-
-# With domain and HTTPS (Let's Encrypt)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com
-
-# With self-signed certificate (by IP)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100
 ```
 
-The installer is interactive — it may ask questions (port conflicts, certificate type, etc.). For fully automated install, pass `-d`.
+The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail with an error. Without `-y`, the script will offer options.
 
 > **Requirements:** Linux server with Docker, Docker Compose, and `curl`. The script runs as **root**.
 

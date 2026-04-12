@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# file: install/phase5-start.sh v1.0
+# file: install/phase5-start.sh v2.0
 # Phase 5: Start containers, verify, summary
-# Expects: MODE, DOMAIN, COMPOSE_CMD, log/warn/die
+# Expects: MODE, DOMAIN, COMPOSE_CMD, NON_INTERACTIVE, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 5: Запуск и проверка"
@@ -12,22 +12,30 @@ log "═════════════════════════
 #################################
 echo ""
 log "Запускаем контейнеры..."
+
+# Останавливаем старые, если были
+"${COMPOSE_CMD[@]}" down --remove-orphans 2>/dev/null || true
+
 "${COMPOSE_CMD[@]}" up -d --remove-orphans
 
-log "Ожидаем запуск..."
-sleep 3
+#################################
+# VERIFY — polling check
+#################################
+log "Ожидаем запуск контейнеров (до 60 сек)..."
+
+if ! check_containers_running 60; then
+  warn "Не все контейнеры запустились. Логи:"
+  "${COMPOSE_CMD[@]}" logs --tail=50
+  die "Установка прервана из-за ошибки запуска контейнеров"
+fi
 
 #################################
-# STATUS
+# HTTP VERIFY
 #################################
 echo ""
-"${COMPOSE_CMD[@]}" ps
+log "Проверяем доступность сайта..."
 
-#################################
-# VERIFY
-#################################
-echo ""
-log "Проверяем доступность..."
+sleep 2
 
 if [[ "$MODE" == "http" ]]; then
   code=$(curl -fsS -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "000")
@@ -51,9 +59,9 @@ fi
 # SUMMARY
 #################################
 echo ""
-log "═══════════════════════════════════════════════════"
-log "  MySphere fakesite установлен и запущен!"
-log "═══════════════════════════════════════════════════"
+echo "==================================================="
+echo "  ✔ MySphere fakesite установлен и запущен!"
+echo "==================================================="
 echo ""
 
 if [[ "$MODE" == "http" ]]; then
@@ -61,8 +69,8 @@ if [[ "$MODE" == "http" ]]; then
   log "  URL:         http://localhost"
   log "  Порт:        80"
   echo ""
-  log "  Для HTTPS:"
-  log "    update-custom.sh -r <repo> -b <branch> -d <domain>"
+  log "  Для HTTPS с доменом:"
+  log "    sudo ./update-custom.sh -d <domain>"
 else
   log "  Режим:       HTTPS"
   log "  URL:         https://${DOMAIN}"
@@ -78,7 +86,7 @@ fi
 
 echo ""
 log "Управление:"
-log "  Обновить:  sudo ./update-custom.sh -r <repo> -b <branch>"
+log "  Обновить:  sudo ./update-custom.sh"
 log "  Удалить:   sudo ./delete.sh"
 log "  Логи:      sudo ${COMPOSE_CMD[*]} logs -f"
 echo ""

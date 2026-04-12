@@ -115,16 +115,31 @@ fi
 #################################
 # CLEAN IMAGES
 #################################
-log "Удаляем образы myfakesite (если есть)"
+log "Удаляем образы проекта (если есть)"
 
-docker images --format '{{.Repository}} {{.ID}}' \
-  | grep -E "myfakesite|fakesite" \
-  | awk '{print $2}' \
-  | xargs -r docker rmi -f || true
+# Безопасная очистка через --filter вместо grep | xargs
+docker images --filter "reference=myfakesite*" --filter "reference=fakesite*" --format '{{.ID}}' \
+  | xargs -r docker rmi -f 2>/dev/null || true
+
+# Чистим dangling (битые) образы
+docker image prune -f 2>/dev/null || true
+
+#################################
+# CLEAN SELF-SIGNED CERTS (если были)
+#################################
+if [[ -d "/etc/letsencrypt/live/localhost" ]]; then
+  log "Удаляем self-signed сертификаты localhost..."
+  rm -rf "/etc/letsencrypt/live/localhost"
+fi
 
 #################################
 # REMOVE DIRECTORY
 #################################
+# Sanity check перед rm -rf
+if [[ -z "$PROJECT_DIR" || "$PROJECT_DIR" == "/" ]]; then
+  die "Подозрительный путь PROJECT_DIR=$PROJECT_DIR — удаление отменено"
+fi
+
 log "Удаляем $PROJECT_DIR"
 rm -rf "$PROJECT_DIR"
 

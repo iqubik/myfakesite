@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# file: install/phase3-certs.sh v1.0
+# file: install/phase3-certs.sh v2.0
 # Phase 3: SSL certificates
 # Sets: SSL_CERT_PATH, SSL_KEY_PATH, SSL_MODE
-# Expects: MODE, DOMAIN, CUSTOM_CERT, CUSTOM_KEY, log/warn/die
+# Expects: MODE, DOMAIN, CUSTOM_CERT, CUSTOM_KEY, NON_INTERACTIVE, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 3: SSL-сертификаты"
@@ -82,7 +82,8 @@ if [[ "$MODE" == "https-selfsigned" ]]; then
       -newkey rsa:2048 \
       -keyout "$SSL_KEY_PATH" \
       -out "$SSL_CERT_PATH" \
-      -subj "/CN=${DOMAIN}" 2>/dev/null
+      -subj "/CN=${DOMAIN}" \
+      -addext "subjectAltName=IP:${DOMAIN}" 2>/dev/null
 
     log "Сертификат создан: $SSL_CERT_PATH"
     warn "Браузер покажет предупреждение — это нормально для IP-адресов"
@@ -115,22 +116,11 @@ if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
   fi
 fi
 
-# Нет LE — спрашиваем пользователя
-echo ""
-echo "  Сертификат для $DOMAIN не найден."
-echo ""
-echo "  Варианты:"
-echo "    1) Получить Let's Encrypt через certbot (настоящий сертификат)"
-echo "       Рекомендуется для продакшена"
-echo ""
-echo "    2) Сгенерировать self-signed (для тестирования)"
-echo "       Браузер покажет предупреждение"
-echo ""
-read -r -p "Выбор [2]: " cert_choice
-
-if [[ "$cert_choice" == "1" ]]; then
+# Нет LE — решаем
+if [[ "$NON_INTERACTIVE" == "true" ]]; then
+  # Автоматический режим: пробуем certbot, иначе self-signed
   if command -v certbot >/dev/null 2>&1; then
-    log "Запускаем certbot..."
+    log "Пробуем получить Let's Encrypt сертификат..."
     if certbot certonly --standalone -d "$DOMAIN" \
         --non-interactive --agree-tos --register-unsafely-without-email 2>&1; then
       if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
@@ -145,13 +135,49 @@ if [[ "$cert_choice" == "1" ]]; then
         exit 0
       fi
     fi
-    warn "certbot не смог получить сертификат."
+    warn "certbot не смог получить сертификат. Переключаемся на self-signed..."
   else
-    warn "certbot не установлен. Установите: apt install certbot"
+    log "certbot не установлен — генерируем self-signed..."
   fi
-
+else
+  # Интерактивный режим — спрашиваем
   echo ""
-  echo "  Переключаемся на self-signed сертификат..."
+  echo "  Сертификат для $DOMAIN не найден."
+  echo ""
+  echo "  Варианты:"
+  echo "    1) Получить Let's Encrypt через certbot (настоящий сертификат)"
+  echo "       Рекомендуется для продакшена"
+  echo ""
+  echo "    2) Сгенерировать self-signed (для тестирования)"
+  echo "       Браузер покажет предупреждение"
+  echo ""
+  read -r -p "Выбор [2]: " cert_choice
+
+  if [[ "$cert_choice" == "1" ]]; then
+    if command -v certbot >/dev/null 2>&1; then
+      log "Запускаем certbot..."
+      if certbot certonly --standalone -d "$DOMAIN" \
+          --non-interactive --agree-tos --register-unsafely-without-email 2>&1; then
+        if [[ -f "$LE_CERT" && -f "$LE_KEY" ]]; then
+          SSL_CERT_PATH="$LE_CERT"
+          SSL_KEY_PATH="$LE_KEY"
+          SSL_MODE="letsencrypt"
+          log "Let's Encrypt сертификат получен ✓"
+
+          expiry=$(openssl x509 -in "$SSL_CERT_PATH" -noout -enddate 2>/dev/null | cut -d= -f2 || echo "unknown")
+          log "Действителен до: $expiry"
+          export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
+          exit 0
+        fi
+      fi
+      warn "certbot не смог получить сертификат."
+    else
+      warn "certbot не установлен. Установите: apt install certbot"
+    fi
+
+    echo ""
+    echo "  Переключаемся на self-signed сертификат..."
+  fi
 fi
 
 # Self-signed fallback
@@ -165,10 +191,11 @@ openssl req -x509 -nodes -days 365 \
   -newkey rsa:2048 \
   -keyout "$SSL_KEY_PATH" \
   -out "$SSL_CERT_PATH" \
-  -subj "/CN=${DOMAIN}" 2>/dev/null
+  -subj "/CN=${DOMAIN}" \
+  -addext "subjectAltName=DNS:${DOMAIN}" 2>/dev/null
 
 SSL_MODE="selfsigned"
 warn "Self-signed сертификат создан (браузер покажет предупреждение)"
-warn "Для настоящего сертификата: certbot certonly --standalone -d ${DOMAIN}"
+warn "Для настоящего: certbot certonly --standalone -d ${DOMAIN}"
 
 export SSL_CERT_PATH SSL_KEY_PATH SSL_MODE
