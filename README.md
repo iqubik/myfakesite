@@ -75,7 +75,19 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 
 Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся с ошибкой. Без `-y` скрипт предложит варианты действий.
 
-> **Требования:** Linux-сервер с Docker, Docker Compose и `curl`. Скрипт запускается от **root**.
+> **Требования:** Linux-сервер с `curl`. Скрипт сам установит Docker, Docker Compose и настроит всё остальное. Запускается от **root**.
+
+#### ⚡ Обновление (одной командой)
+
+```bash
+# Обновить до последней версии
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -y
+
+# Обновить до конкретной ветки/репозитория
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b main -y
+```
+
+> Обновление находит проект в `/opt/myfakesite` (или укажите `-p /путь`). Работает из любой директории.
 
 #### Ручная установка
 
@@ -248,7 +260,19 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 
 The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail with an error. Without `-y`, the script will offer options.
 
-> **Requirements:** Linux server with Docker, Docker Compose, and `curl`. The script runs as **root**.
+> **Requirements:** Linux server with `curl`. The script installs Docker, Docker Compose and everything else automatically. Runs as **root**.
+
+#### ⚡ Quick Update (one command)
+
+```bash
+# Update to latest version
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -y
+
+# Update to a specific branch/repo
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b main -y
+```
+
+> Update finds the project in `/opt/myfakesite` (or specify `-p /path`). Works from any directory.
 
 #### Manual setup
 
