@@ -252,7 +252,9 @@ _resolve_phase_dir() {
   # Strategy 3: download phase files from GitHub into /tmp/install
   if [[ -z "$dir" || ! -d "$dir" ]]; then
     local tmp_install="/tmp/myfakesite-install"
-    if [[ ! -d "$tmp_install" ]]; then
+    # Check if directory has actual phase files (not just leftover empty dir from failed run)
+    if [[ ! -f "$tmp_install/phase1-prereqs.sh" ]]; then
+      rm -rf "$tmp_install"
       mkdir -p "$tmp_install"
       # Extract org/repo from REPO_URL
       local repo_path="${REPO_URL#https://github.com/}"
