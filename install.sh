@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: install.sh v1.1.1
+# file: install.sh v1.1.6
 set -euo pipefail
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
@@ -99,7 +99,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1.5"
+echo "[INFO] Версия скрипта: 1.1.6"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────
@@ -275,24 +275,25 @@ _resolve_phase_dir() {
   # Strategy 3: download phase files from GitHub into /tmp/install
   if [[ -z "$dir" || ! -d "$dir" ]]; then
     local tmp_install="/tmp/myfakesite-install"
-    # Check if directory has actual phase files (not just leftover empty dir from failed run)
-    if [[ ! -f "$tmp_install/phase1-prereqs.sh" ]]; then
-      rm -rf "$tmp_install"
-      mkdir -p "$tmp_install"
-      # Extract org/repo from REPO_URL
-      local repo_path="${REPO_URL#https://github.com/}"
-      repo_path="${repo_path%.git}"
-      local base_url="https://raw.githubusercontent.com/${repo_path}/${BRANCH}/install"
+    
+    # ВСЕГДА удаляем старый кэш и качаем свежие файлы
+    rm -rf "$tmp_install"
+    mkdir -p "$tmp_install"
+    
+    # Extract org/repo from REPO_URL
+    local repo_path="${REPO_URL#https://github.com/}"
+    repo_path="${repo_path%.git}"
+    local base_url="https://raw.githubusercontent.com/${repo_path}/${BRANCH}/install"
 
-      warn "Загружаем файлы фаз из репозитория..." >&2
-      local phase_file
-      for phase_file in phase1-prereqs.sh phase2-domain.sh phase3-certs.sh phase4-apply.sh phase5-start.sh; do
-        if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>&1; then
-          die "Не удалось загрузить $phase_file из ${base_url}"
-        fi
-      done
-      log "Файлы фаз загружены ✓" >&2
-    fi
+    warn "Загружаем файлы фаз из репозитория..." >&2
+    local phase_file
+    for phase_file in phase1-prereqs.sh phase2-domain.sh phase3-certs.sh phase4-apply.sh phase5-start.sh; do
+      if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>&1; then
+        die "Не удалось загрузить $phase_file из ${base_url}"
+      fi
+    done
+    log "Файлы фаз загружены ✓" >&2
+    
     echo "$tmp_install"
     return 0
   fi

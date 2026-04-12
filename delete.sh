@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: delete.sh v1.0
+# file: delete.sh v1.1.6
 set -euo pipefail
 
 #################################
@@ -88,7 +88,7 @@ fi
 need_root
 resolve_compose_cmd
 echo ""
-echo "[INFO] Версия скрипта: 1.1"
+echo "[INFO] Версия скрипта: 1.1.6"
 echo ""
 log "Compose команда: ${COMPOSE_CMD[*]}"
 
@@ -126,6 +126,9 @@ if [[ ! -d "$PROJECT_DIR" ]]; then
       log "Оставшиеся сети удалены ✓"
     fi
   fi
+
+  # Чистим временные файлы install
+  rm -rf /tmp/myfakesite-install 2>/dev/null || true
 
   log "✔ MySphere fakesite уже удалён"
   exit 0
@@ -208,6 +211,13 @@ if [[ -z "$final_networks" ]]; then
 else
   warn "Остались сети: $final_networks"
 fi
+
+#################################
+# CLEAN TMP INSTALL FILES
+#################################
+log "Очищаем временные файлы установки..."
+rm -rf /tmp/myfakesite-install 2>/dev/null || true
+log "Временные файлы удалены ✓"
 
 #################################
 # REMOVE DIRECTORY
