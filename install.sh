@@ -223,7 +223,14 @@ check_containers_running() {
 }
 
 # ─── Phase scripts ─────────────────────────────────────────
-PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/install" && pwd)"
+# Determine script directory (works for both direct execution and curl|bash)
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PHASE_DIR="$_SCRIPT_DIR/install"
+
+# Validate phase directory exists
+if [[ ! -d "$PHASE_DIR" ]]; then
+  die "Директория фаз установки не найдена: $PHASE_DIR"
+fi
 
 export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
 
