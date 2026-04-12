@@ -38,11 +38,19 @@
 
 ```
 ├── docker-compose.yml   # Nginx + PHP-FPM, лимиты ресурсов
-├── nginx.conf           # Mock API, security headers, rate limiting
-├── index.html           # SPA: Three.js 3D-фон + форма логина
-├── status.php           # PHP health check (дубль /api/status)
-├── phpinfo.php          # Отладка PHP
-└── robots.txt           # SEO:Disallow /api/, /admin/, /internal/
+├── install.sh           # Скрипт установки
+├── update.sh            # Скрипт обновления
+├── delete.sh            # Скрипт удаления
+├── data/
+│   ├── nginx.conf       # Mock API, security headers, rate limiting
+│   ├── index.html       # SPA: Three.js 3D-фон + форма логина
+│   ├── status.php       # PHP health check (дубль /api/status)
+│   ├── phpinfo.php      # Отладка PHP
+│   ├── favicon.ico      # Иконка сайта
+│   ├── apple-touch-icon.png
+│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
+└── install/
+    └── phase*.sh        # Фазы установки
 ```
 
 ### Запуск
@@ -79,7 +87,7 @@ docker compose up -d
 
 ### 📖 Уроки и документация
 
-Полный подробный разбор — **[TUTORIAL.md →](TUTORIAL.md)**.
+Полный подробный разбор — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
 
 Там вы найдёте:
 - Детальный разбор каждой строки `nginx.conf`, `docker-compose.yml` и `index.html`
@@ -120,16 +128,19 @@ sudo ./install.sh \
 #### Обновление
 
 ```bash
+# Обновить до последней версии
+sudo ./update.sh
+
 # Обновить до конкретной ветки/репозитория
-sudo ./update-custom.sh -r https://github.com/iqubik/myfakesite.git -b main
+sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b main
 
 # Обновить из своего форка
-sudo ./update-custom.sh \
+sudo ./update.sh \
   -r https://github.com/me/myfakesite.git \
   -b feature-branch
 ```
 
-**Что делает `update-custom.sh`:**
+**Что делает `update.sh`:**
 - Fetch + merge из указанного ветки
 - Перезапускает контейнеры (`down` → `up -d --force-recreate`)
 - Проверяет что все контейнеры запустились
@@ -200,11 +211,19 @@ The concept is simple: you want to build a polished single-page application with
 
 ```
 ├── docker-compose.yml   # Nginx + PHP-FPM, resource limits
-├── nginx.conf           # Mock API, security headers, rate limiting
-├── index.html           # SPA: Three.js 3D background + login form
-├── status.php           # PHP health check (mirror of /api/status)
-├── phpinfo.php          # PHP debugging
-└── robots.txt           # SEO: Disallow /api/, /admin/, /internal/
+├── install.sh           # Installation script
+├── update.sh            # Update script
+├── delete.sh            # Uninstall script
+├── data/
+│   ├── nginx.conf       # Mock API, security headers, rate limiting
+│   ├── index.html       # SPA: Three.js 3D background + login form
+│   ├── status.php       # PHP health check (mirror of /api/status)
+│   ├── phpinfo.php      # PHP debugging
+│   ├── favicon.ico      # Site icon
+│   ├── apple-touch-icon.png
+│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
+└── install/
+    └── phase*.sh        # Installation phases
 ```
 
 ### Running
@@ -241,7 +260,7 @@ Before running, replace `YOUDOMEN.XXX` in `docker-compose.yml` and `nginx.conf` 
 
 ### 📖 Tutorials & Documentation
 
-Full detailed walkthrough — **[TUTORIAL.md →](TUTORIAL.md)**.
+Full detailed walkthrough — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
 
 Inside you'll find:
 - Line-by-line breakdown of `nginx.conf`, `docker-compose.yml` and `index.html`
@@ -282,16 +301,19 @@ sudo ./install.sh \
 #### Update
 
 ```bash
+# Update to latest version
+sudo ./update.sh
+
 # Update to a specific branch/repo
-sudo ./update-custom.sh -r https://github.com/iqubik/myfakesite.git -b main
+sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b main
 
 # Update from your fork
-sudo ./update-custom.sh \
+sudo ./update.sh \
   -r https://github.com/me/myfakesite.git \
   -b feature-branch
 ```
 
-**What `update-custom.sh` does:**
+**What `update.sh` does:**
 - Fetch + merge from the specified branch
 - Restarts containers (`down` → `up -d --force-recreate`)
 - Verifies all containers are running

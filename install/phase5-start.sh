@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: install/phase5-start.sh v2.0
+# file: install/phase5-start.sh v1.1
 # Phase 5: Start containers, verify, summary
 # Expects: MODE, DOMAIN, COMPOSE_CMD, NON_INTERACTIVE, log/warn/die
 
@@ -70,7 +70,7 @@ if [[ "$MODE" == "http" ]]; then
   log "  Порт:        80"
   echo ""
   log "  Для HTTPS с доменом:"
-  log "    sudo ./update-custom.sh -d <domain>"
+  log "    sudo ./update.sh -d <domain>"
 else
   log "  Режим:       HTTPS"
   log "  URL:         https://${DOMAIN}"
@@ -86,7 +86,7 @@ fi
 
 echo ""
 log "Управление:"
-log "  Обновить:  sudo ./update-custom.sh"
+log "  Обновить:  sudo ./update.sh"
 log "  Удалить:   sudo ./delete.sh"
 log "  Логи:      sudo ${COMPOSE_CMD[*]} logs -f"
 echo ""

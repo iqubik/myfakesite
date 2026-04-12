@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: install/phase2-domain.sh v2.0
+# file: install/phase2-domain.sh v1.1
 # Phase 2: Domain/IP detection, port checks, UFW
 # Sets: MODE, DOMAIN
 # Expects: DOMAIN, PROJECT_DIR, NON_INTERACTIVE, log/warn/die

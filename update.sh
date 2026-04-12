@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: update-custom.sh v2.0
+# file: update.sh v1.1
 set -euo pipefail
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
@@ -11,7 +11,7 @@ die()  { echo -e "\033[1;31m[ERROR]\033[0m $1"; exit 1; }
 usage() {
   cat <<'EOF'
 Использование:
-  update-custom.sh [-r <repo_url>] [-b <branch>] [-p <project_dir>] [-y]
+  update.sh [-r <repo_url>] [-b <branch>] [-p <project_dir>] [-y]
 
 Параметры:
   -r  Git URL репозитория (по умолчанию: https://github.com/iqubik/myfakesite.git)
@@ -21,9 +21,9 @@ usage() {
   -h  Показать справку
 
 Примеры:
-  ./update-custom.sh                              # Обновить до main
-  ./update-custom.sh -b feature-branch            # Обновить до ветки
-  ./update-custom.sh -r https://github.com/me/myfakesite.git -b mybranch
+  ./update.sh                              # Обновить до main
+  ./update.sh -b feature-branch            # Обновить до ветки
+  ./update.sh -r https://github.com/me/myfakesite.git -b mybranch
 EOF
 }
 
@@ -151,7 +151,7 @@ fi
 log "Проверяем доступность сайта..."
 
 HTTPS_MODE=0
-if grep -q "listen 443 ssl" nginx.conf 2>/dev/null && grep -q '"443:443"' docker-compose.yml 2>/dev/null; then
+if grep -q "listen 443 ssl" data/nginx.conf 2>/dev/null && grep -q '"443:443"' docker-compose.yml 2>/dev/null; then
   HTTPS_MODE=1
 fi
 

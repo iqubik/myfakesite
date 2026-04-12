@@ -18,6 +18,34 @@ need_cmd git
 need_cmd sed
 
 #################################
+# DOCKER INSTALL
+#################################
+if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+  log "Docker $(docker --version) уже установлен ✓"
+else
+  log "Docker не найден — устанавливаем..."
+  curl -fsSL https://get.docker.com | sh >/dev/null 2>&1 || die "Не удалось установить Docker"
+  # Убедимся что демон запущен
+  systemctl is-active --quiet docker || systemctl start docker
+  log "Docker установлен и запущен ✓"
+fi
+
+resolve_compose_cmd() {
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE_CMD=("docker" "compose")
+    return 0
+  fi
+  if command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE_CMD=("docker-compose")
+    return 0
+  fi
+  die "Не найден Docker Compose (ни v2 plugin, ни v1 binary)"
+}
+
+resolve_compose_cmd
+log "Compose команда: ${COMPOSE_CMD[*]}"
+
+#################################
 # GIT CLONE / UPDATE
 #################################
 log "Подготовка проекта в $PROJECT_DIR"
@@ -55,7 +83,7 @@ cd "$PROJECT_DIR"
 
 # Проверка ключевых файлов
 [[ -f docker-compose.yml ]] || die "Не найден docker-compose.yml в $PROJECT_DIR"
-[[ -f nginx.conf ]] || die "Не найден nginx.conf в $PROJECT_DIR"
-[[ -f index.html ]] || die "Не найден index.html в $PROJECT_DIR"
+[[ -f data/nginx.conf ]] || die "Не найден data/nginx.conf в $PROJECT_DIR"
+[[ -f data/index.html ]] || die "Не найден data/index.html в $PROJECT_DIR"
 
 log "Ключевые файлы на месте ✓"

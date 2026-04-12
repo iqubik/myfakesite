@@ -1,4 +1,4 @@
-# file: robots.txt v1.0
+# file: robots.txt v1.1
 User-agent: *
 Allow: /
 Disallow: /api/

@@ -13,7 +13,7 @@ log "═════════════════════════
 log "Подставляем '${DOMAIN}' в файлы..."
 
 sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" docker-compose.yml
-sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" nginx.conf
+sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" data/nginx.conf
 
 log "Замена YOUDOMEN.XXX → ${DOMAIN} выполнена ✓"
 
