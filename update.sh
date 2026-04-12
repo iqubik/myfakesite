@@ -119,7 +119,7 @@ log "Обновление исходников из ${REPO_URL} (${BRANCH})..."
 # Сохраняем текущий домен ДО обновления (reset --hard может затереть)
 SAVED_DOMAIN=""
 if [[ -f "docker-compose.yml" ]]; then
-  SAVED_DOMAIN=$(grep -oP '/etc/letsencrypt/live/\K[^/]+' docker-compose.yml 2>/dev/null || true)
+  SAVED_DOMAIN=$(grep -oP '/etc/letsencrypt/live/\K[^/]+' docker-compose.yml 2>/dev/null | head -n1 || true)
   if [[ -z "$SAVED_DOMAIN" ]]; then
     # Проверяем HTTP-режим
     if grep -q 'nginx-http\.conf' docker-compose.yml 2>/dev/null; then
