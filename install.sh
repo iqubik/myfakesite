@@ -101,9 +101,49 @@ need_cmd curl
 # Docker — special handling via get.docker.com
 if ! command -v docker >/dev/null 2>&1; then
   warn "docker не найден, устанавливаем через get.docker.com..."
-  curl -fsSL https://get.docker.com | sh >/dev/null 2>&1 || die "Не удалось установить Docker"
-  systemctl is-active --quiet docker || systemctl start docker
-  log "docker установлен ✓"
+  
+  # Загружаем скрипт во временный файл (избегаем pipefail-проблем с прямым piping)
+  TMPDOCKER=$(mktemp /tmp/get-docker.XXXXXX.sh)
+  if curl -fsSL https://get.docker.com -o "$TMPDOCKER" 2>&1; then
+    chmod +x "$TMPDOCKER"
+    # Запускаем скрипт — выводим логи для отладки
+    if sh "$TMPDOCKER" 2>&1; then
+      log "docker установлен ✓"
+    else
+      rm -f "$TMPDOCKER"
+      die "Не удалось установить Docker (скрипт get.docker.com завершился с ошибкой)"
+    fi
+    rm -f "$TMPDOCKER"
+  else
+    rm -f "$TMPDOCKER"
+    die "Не удалось загрузить установочный скрипт Docker"
+  fi
+  
+  # Запуск демона — пробуем systemctl, fallback на прямое выполнение
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl enable --now docker 2>/dev/null || systemctl start docker 2>/dev/null || true
+  else
+    # Fallback для систем без systemd
+    service docker start 2>/dev/null || true
+  fi
+  
+  # Проверяем что docker действительно работает
+  if ! command -v docker >/dev/null 2>&1; then
+    die "Docker установлен некорректно — команда docker не найдена"
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    warn "docker info недоступен — возможно демон не запущен, пробуем перезапуск..."
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl restart docker 2>/dev/null || true
+    else
+      service docker restart 2>/dev/null || true
+    fi
+    sleep 2
+    if ! docker info >/dev/null 2>&1; then
+      die "Docker демон не отвечает после перезапуска"
+    fi
+  fi
+  log "docker работает ✓"
 fi
 
 if ! docker compose version >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
