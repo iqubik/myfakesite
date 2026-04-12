@@ -18,6 +18,23 @@ sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" data/nginx.conf
 log "Замена YOUDOMEN.XXX → ${DOMAIN} выполнена ✓"
 
 #################################
+# APPLY VERSION from data/VERSION
+#################################
+if [[ -f "data/VERSION" ]]; then
+  APP_VERSION=$(tr -d '[:space:]' < data/VERSION)
+  log "Версия приложения: ${APP_VERSION}"
+
+  # Подставляем версию во все файлы где есть заглушка VERSION_PLACEHOLDER
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/index.html 2>/dev/null || true
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/nginx.conf 2>/dev/null || true
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/status.php 2>/dev/null || true
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/VERSION 2>/dev/null || true
+
+  # Если фаза 4 запускается повторно (версия уже стоит) — ничего страшного
+  # VERSION_PLACEHOLDER не найден, sed просто пропустит
+fi
+
+#################################
 # HTTP MODE: adapt docker-compose.yml
 #################################
 if [[ "$MODE" == "http" ]]; then
@@ -58,13 +75,13 @@ server {
 
     location ~ ^/api/status$ {
         default_type application/json;
-        add_header X-Powered-By "MySphere/2.4.8" always;
+        add_header X-Powered-By "MySphere/VERSION_PLACEHOLDER" always;
         add_header X-Request-Id "$request_id" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Robots-Tag "noindex, nofollow" always;
         add_header Referrer-Policy "no-referrer" always;
-        return 200 '{"online":true,"maintenance":false,"version":"2.4.8","build":"2026.03.15","product":"MySphere","api":"1.0"}';
+        return 200 '{"online":true,"maintenance":false,"version":"VERSION_PLACEHOLDER","build":"2026.03.15","product":"MySphere","api":"1.0"}';
     }
 
     error_page 429 = @rate_limited;
