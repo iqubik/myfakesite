@@ -97,13 +97,19 @@ if [[ ! -d "$PROJECT_DIR" ]]; then
   # VERIFY: убеждаемся что и контейнеров/образов проекта нет
   remaining_containers=$(docker ps -a --filter 'name=fakesite' --format '{{.Names}}' 2>/dev/null || true)
   remaining_images=$(docker images --filter "reference=fakesite*" --format '{{.Repository}}' 2>/dev/null || true)
+  remaining_volumes=$(docker volume ls --filter 'name=fakesite' --filter 'name=myfakesite' -q 2>/dev/null || true)
+  remaining_networks=$(docker network ls --filter 'name=fakesite' --filter 'name=myfakesite' --format '{{.Name}}' 2>/dev/null || true)
 
-  if [[ -z "$remaining_containers" && -z "$remaining_images" ]]; then
+  if [[ -z "$remaining_containers" && -z "$remaining_images" && -z "$remaining_volumes" && -z "$remaining_networks" ]]; then
     log "Контейнеры проекта отсутствуют ✓"
     log "Образы проекта отсутствуют ✓"
+    log "Тома проекта отсутствуют ✓"
+    log "Сети проекта отсутствуют ✓"
   else
     [[ -n "$remaining_containers" ]] && warn "Остались контейнеры: $remaining_containers"
     [[ -n "$remaining_images" ]] && warn "Остались образы: $remaining_images"
+    [[ -n "$remaining_volumes" ]] && warn "Остались тома: $remaining_volumes"
+    [[ -n "$remaining_networks" ]] && warn "Остались сети: $remaining_networks"
   fi
 
   log "✔ MySphere fakesite уже удалён"
@@ -152,6 +158,40 @@ if [[ -n "$remaining_imgs" ]]; then
   warn "Остались образы: $remaining_imgs"
 else
   log "Образы проекта удалены ✓"
+fi
+
+#################################
+# CLEAN VOLUMES AND NETWORKS
+#################################
+log "Очищаем тома и сети проекта..."
+
+# Удаляем volumes проекта
+remaining_volumes=$(docker volume ls --filter 'name=fakesite' --filter 'name=myfakesite' -q 2>/dev/null || true)
+if [[ -n "$remaining_volumes" ]]; then
+  echo "$remaining_volumes" | xargs -r docker volume rm -f 2>/dev/null || warn "Не удалось удалить часть томов"
+fi
+
+# Удаляем сети проекта (docker compose down обычно делает это, но на случай если остались)
+remaining_networks=$(docker network ls --filter 'name=fakesite' --filter 'name=myfakesite' --format '{{.Name}}' 2>/dev/null || true)
+if [[ -n "$remaining_networks" ]]; then
+  echo "$remaining_networks" | while read -r net; do
+    docker network rm "$net" 2>/dev/null || warn "Не удалось удалить сеть: $net"
+  done
+fi
+
+# VERIFY: тома и сети очищены
+final_volumes=$(docker volume ls --filter 'name=fakesite' --filter 'name=myfakesite' -q 2>/dev/null || true)
+if [[ -z "$final_volumes" ]]; then
+  log "Тома проекта удалены ✓"
+else
+  warn "Остались тома: $final_volumes"
+fi
+
+final_networks=$(docker network ls --filter 'name=fakesite' --filter 'name=myfakesite' --format '{{.Name}}' 2>/dev/null || true)
+if [[ -z "$final_networks" ]]; then
+  log "Сети проекта удалены ✓"
+else
+  warn "Остались сети: $final_networks"
 fi
 
 #################################
