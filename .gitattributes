@@ -1,3 +1,35 @@
-# file: .gitattributes v1.0
-# Auto detect text files and perform LF normalization
-* text=auto
+# file: .gitattributes v1.1
+# Force LF line endings for all project files (cross-platform consistency)
+
+# Web / frontend
+*.html   text eol=lf
+*.css    text eol=lf
+*.js     text eol=lf
+*.json   text eol=lf
+
+# Server / config
+*.conf   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.env    text eol=lf
+
+# Backend
+*.php    text eol=lf
+
+# Scripts
+*.sh     text eol=lf
+
+# Docs / markdown
+*.md     text eol=lf
+
+# Docker
+Dockerfile           text eol=lf
+docker-compose*      text eol=lf
+
+# Binary / images (no conversion)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.svg  text eol=lf
+*.ico  binary
