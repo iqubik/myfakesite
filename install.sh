@@ -254,20 +254,19 @@ _resolve_phase_dir() {
     local tmp_install="/tmp/myfakesite-install"
     if [[ ! -d "$tmp_install" ]]; then
       mkdir -p "$tmp_install"
-      local base_url="https://raw.githubusercontent.com/${REPO_URL##*/github.com\//}/${BRANCH}/install"
       # Extract org/repo from REPO_URL
       local repo_path="${REPO_URL#https://github.com/}"
-      repo_path="${repo_path#https://github.com/}"
       repo_path="${repo_path%.git}"
-      base_url="https://raw.githubusercontent.com/${repo_path}/${BRANCH}/install"
+      local base_url="https://raw.githubusercontent.com/${repo_path}/${BRANCH}/install"
 
-      warn "Загружаем файлы фаз из репозитория..."
+      warn "Загружаем файлы фаз из репозитория..." >&2
+      local phase_file
       for phase_file in phase1-prereqs.sh phase2-domain.sh phase3-certs.sh phase4-apply.sh phase5-start.sh; do
-        if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>/dev/null; then
+        if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>&1; then
           die "Не удалось загрузить $phase_file из ${base_url}"
         fi
       done
-      log "Файлы фаз загружены ✓"
+      log "Файлы фаз загружены ✓" >&2
     fi
     echo "$tmp_install"
     return 0
