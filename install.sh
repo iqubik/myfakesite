@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: install.sh v1.1
+# file: install.sh v1.1.1
 set -euo pipefail
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
@@ -80,7 +80,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1"
+echo "[INFO] Версия скрипта: 1.1.1"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────

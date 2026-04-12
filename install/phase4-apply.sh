@@ -212,7 +212,7 @@ HTTPCONF
   sed -i '/- "443:443"/d' docker-compose.yml
   sed -i '/fullchain\.pem.*fakesite\.crt/d' docker-compose.yml
   sed -i '/privkey\.pem.*fakesite\.key/d' docker-compose.yml
-  sed -i 's|./nginx\.conf:/etc/nginx/conf\.d/default\.conf:ro|./nginx-http.conf:/etc/nginx/conf.d/default.conf:ro|' docker-compose.yml
+  sed -i 's|./data/nginx\.conf:/etc/nginx/conf\.d/default\.conf:ro|./nginx-http.conf:/etc/nginx/conf.d/default.conf:ro|' docker-compose.yml
 
   log "HTTP-конфигурация готова ✓"
   exit 0
