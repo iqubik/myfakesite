@@ -153,8 +153,11 @@ sudo ./update.sh \
 ```
 
 **Что делает `update.sh`:**
-- Fetch + merge из указанного ветки
-- Перезапускает контейнеры (`down` → `up -d --force-recreate`)
+- Сохраняет текущий домен из конфигурации (до git-обновления)
+- Fetch + merge из указанного ветки (или `reset --hard` при конфликтах)
+- Восстанавливает домен в `docker-compose.yml` и `data/nginx.conf`
+- Подставляет версию из `data/VERSION`
+- Перезапускает контейнеры
 - Проверяет что все контейнеры запустились
 - Проверяет доступность сайта через curl
 
@@ -338,8 +341,11 @@ sudo ./update.sh \
 ```
 
 **What `update.sh` does:**
-- Fetch + merge from the specified branch
-- Restarts containers (`down` → `up -d --force-recreate`)
+- Saves current domain from config (before git update)
+- Fetch + merge from the specified branch (or `reset --hard` on conflicts)
+- Restores domain in `docker-compose.yml` and `data/nginx.conf`
+- Applies version from `data/VERSION`
+- Restarts containers
 - Verifies all containers are running
 - Checks site availability via curl
 
