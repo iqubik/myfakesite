@@ -55,7 +55,8 @@
 │   ├── apple-touch-icon.png
 │   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
 └── install/
-    └── phase*.sh        # Фазы установки
+    ├── phase*.sh        # Фазы установки
+    └── certbot-renew-hook.sh  # Хук обновления сертификатов
 ```
 
 ### Запуск
@@ -254,7 +255,8 @@ The concept is simple: you want to build a polished single-page application with
 │   ├── apple-touch-icon.png
 │   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
 └── install/
-    └── phase*.sh        # Installation phases
+    ├── phase*.sh        # Installation phases
+    └── certbot-renew-hook.sh  # Certificate renewal hook
 ```
 
 ### Running
