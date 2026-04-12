@@ -185,7 +185,9 @@ if [[ "$MODE" == "https" && -f "$LE_CERT" && command -v certbot >/dev/null 2>&1 
   log "Проверяем авто-обновление сертификатов..."
   if [[ ! -f /etc/cron.d/certbot-fakesite ]]; then
     log "Настраиваем авто-обновление сертификатов..."
-    HOOK_SCRIPT="/opt/myfakesite/install/certbot-renew-hook.sh"
+    mkdir -p /etc/myfakesite
+    echo "$PROJECT_DIR" > /etc/myfakesite/project_path
+    HOOK_SCRIPT="${PROJECT_DIR}/install/certbot-renew-hook.sh"
     cat > /etc/cron.d/certbot-fakesite <<CRON
 # MySphere fakesite — certbot auto-renewal (webroot, zero-downtime)
 0 3 * * * root certbot renew --quiet --deploy-hook "${HOOK_SCRIPT}" > /var/log/certbot-fakesite.log 2>&1

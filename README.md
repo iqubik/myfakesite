@@ -135,6 +135,7 @@ sudo ./install.sh \
 - Запрашивает домен (или берёт из `-d`)
 - Настраивает nginx: подставляет домен, SSL или HTTP-режим
 - Если SSL нет — предложит HTTP-режим или self-signed сертификат
+- При домене и Let's Encrypt — устанавливает certbot, получает сертификат, настраивает **авто-обновление** (cron ежедневно в 3:00)
 - Запускает контейнеры через Docker Compose
 
 #### Обновление
@@ -172,6 +173,13 @@ sudo ./delete.sh -f
 
 # Из другой папки
 sudo ./delete.sh -p /opt/myfakesite -f
+```
+
+#### ⚡ Удаление (одной командой)
+
+```bash
+# Без подтверждения (force)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | sudo bash -s -- -f
 ```
 
 **Что делает `delete.sh`:**
@@ -323,6 +331,7 @@ sudo ./install.sh \
 - Prompts for domain (or takes from `-d`)
 - Configures nginx: substitutes domain, SSL or HTTP mode
 - If no SSL — offers HTTP mode or a self-signed certificate
+- With domain and Let's Encrypt — installs certbot, obtains certificate, sets up **auto-renewal** (cron daily at 3:00 AM)
 - Starts containers via Docker Compose
 
 #### Update
@@ -360,6 +369,13 @@ sudo ./delete.sh -f
 
 # From a custom path
 sudo ./delete.sh -p /opt/myfakesite -f
+```
+
+#### ⚡ Quick Uninstall (one command)
+
+```bash
+# Without confirmation (force)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | sudo bash -s -- -f
 ```
 
 **What `delete.sh` does:**

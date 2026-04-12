@@ -61,7 +61,11 @@ fi
 if [[ "${SSL_MODE:-}" == "letsencrypt" ]]; then
   log "Настраиваем авто-обновление сертификатов..."
 
-  HOOK_SCRIPT="/opt/myfakesite/install/certbot-renew-hook.sh"
+  # Сохраняем путь к проекту для deploy-hook
+  mkdir -p /etc/myfakesite
+  echo "$PROJECT_DIR" > /etc/myfakesite/project_path
+
+  HOOK_SCRIPT="${PROJECT_DIR}/install/certbot-renew-hook.sh"
 
   if command -v certbot >/dev/null 2>&1; then
     certbot update_symlinks 2>/dev/null || true
