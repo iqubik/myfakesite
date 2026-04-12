@@ -23,6 +23,25 @@ show_banner() {
   echo ""
 }
 
+# ─── Умная обертка для read (Fix для curl | bash) ─────────────────
+# Позволяет интерактивно запрашивать данные у пользователя (read -p),
+# читая их из /dev/tty, не прерывая загрузку самого скрипта через pipe.
+read() {
+  local is_prompt=0
+  for arg in "$@"; do
+    if [[ "$arg" == "-p" ]]; then
+      is_prompt=1
+      break
+    fi
+  done
+
+  if [[ $is_prompt -eq 1 && ! -t 0 && -e /dev/tty ]]; then
+    builtin read "$@" < /dev/tty
+  else
+    builtin read "$@"
+  fi
+}
+
 # ─── Usage ─────────────────────────────────────────────────
 usage() {
   cat <<'EOF'
@@ -80,7 +99,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1.3"
+echo "[INFO] Версия скрипта: 1.1.4"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────
@@ -288,13 +307,6 @@ if [[ -z "$PHASE_DIR" || ! -d "$PHASE_DIR" ]]; then
 fi
 
 export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
-
-# При запуске через `curl | sudo bash` stdin — пустой pipe.
-# stderr (fd 2) при этом остаётся терминалом.
-# Копируем fd0 из fd2, чтобы `read` в фазах работал с терминала.
-if [[ ! -t 0 && -t 2 ]]; then
-  exec 0<&2
-fi
 
 # Phase 1: Prerequisites + git clone/pull
 # shellcheck source=/dev/null
