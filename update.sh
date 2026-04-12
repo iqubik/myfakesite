@@ -154,8 +154,25 @@ if [[ -n "$SAVED_DOMAIN" && "$SAVED_DOMAIN" != "localhost" ]]; then
   sed -i "s/YOUDOMEN\.XXX/${SAVED_DOMAIN}/g" docker-compose.yml 2>/dev/null || true
   sed -i "s/YOUDOMEN\.XXX/${SAVED_DOMAIN}/g" data/nginx.conf 2>/dev/null || true
   log "Домен восстановлен: ${SAVED_DOMAIN}"
+
+  # VERIFY: домен действительно подставлен
+  if grep -q 'YOUDOMEN.XXX' docker-compose.yml 2>/dev/null; then
+    die "Не удалось подставить домен в docker-compose.yml"
+  fi
+  if grep -q 'YOUDOMEN.XXX' data/nginx.conf 2>/dev/null; then
+    die "Не удалось подставить домен в nginx.conf"
+  fi
+  log "Домен в конфигурации подтверждён ✓"
+
   DOMAIN="$SAVED_DOMAIN"
   MODE="https"
+
+  # VERIFY: SSL-пути в docker-compose.yml
+  if grep -q "letsencrypt/live/${DOMAIN}" docker-compose.yml 2>/dev/null; then
+    log "SSL-пути в docker-compose.yml подтверждены ✓"
+  else
+    warn "SSL-пути для ${DOMAIN} не найдены в docker-compose.yml"
+  fi
 elif [[ -n "$SAVED_DOMAIN" ]]; then
   DOMAIN="localhost"
   MODE="http"
@@ -199,6 +216,24 @@ if [[ -f "data/VERSION" ]]; then
   _bump_version data/index.html "$APP_VERSION"
   _bump_version data/nginx.conf "$APP_VERSION"
   _bump_version data/status.php "$APP_VERSION"
+
+  # VERIFY: версия действительно обновлена
+  _version_ok=0
+  for f in data/index.html data/nginx.conf data/status.php; do
+    if [[ -f "$f" ]]; then
+      if grep -q 'VERSION_PLACEHOLDER' "$f" 2>/dev/null; then
+        warn "VERSION_PLACEHOLDER найден в $f — замена не сработала"
+      elif grep -q "$APP_VERSION" "$f" 2>/dev/null; then
+        log "Версия в $f подтверждена: $APP_VERSION ✓"
+        _version_ok=$((_version_ok + 1))
+      else
+        warn "Версия $APP_VERSION не найдена в $f"
+      fi
+    fi
+  done
+  if [[ $_version_ok -eq 0 ]]; then
+    warn "Ни в одном файле версия не подтверждена. Возможна проблема с обновлением."
+  fi
 fi
 
 #################################
@@ -253,6 +288,16 @@ if [[ $HTTPS_MODE -eq 1 ]]; then
   code=$(curl -fsSk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo "000")
   if [[ "$code" =~ ^(200|301|302)$ ]]; then
     log "Сайт доступен (HTTPS) ✓"
+
+    # Проверяем версию в /api/status
+    api_ver=$(curl -fsSk https://localhost/api/status 2>/dev/null | grep -oP '"version"\s*:\s*"\K[^"]+' || true)
+    if [[ -n "$api_ver" ]]; then
+      if [[ "$api_ver" == "$APP_VERSION" ]]; then
+        log "Версия в API подтверждена: $api_ver ✓"
+      else
+        warn "Версия в API ($api_ver) не совпадает с ожидаемой ($APP_VERSION)"
+      fi
+    fi
   else
     warn "Сайт не отвечает на https://localhost/ (код $code)"
   fi
