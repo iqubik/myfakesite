@@ -27,7 +27,19 @@ if [[ -z "$DOMAIN" ]]; then
     echo "    • IP-адрес         → HTTPS, self-signed сертификат"
     echo "    • Домен            → HTTPS, Let's Encrypt или self-signed"
     echo ""
-    read -r -p "Введите домен или IP-адрес [localhost]: " DOMAIN
+
+    # При запуске через curl | bash stdin — пустой pipe.
+    # Читаем с терминала напрямую.
+    if [[ -t 0 ]]; then
+      # stdin — терминал
+      read -r -p "Введите домен или IP-адрес [localhost]: " DOMAIN
+    elif [[ -e /dev/tty ]]; then
+      # stdin — pipe, но терминал доступен
+      read -r -p "Введите домен или IP-адрес [localhost]: " DOMAIN < /dev/tty
+    else
+      log "Нет доступа к терминалу — HTTP, localhost"
+      DOMAIN="localhost"
+    fi
 
     if [[ -z "$DOMAIN" || "$DOMAIN" == "localhost" ]]; then
       MODE="http"
