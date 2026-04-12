@@ -215,7 +215,7 @@ HTTPCONF
   sed -i 's|./data/nginx\.conf:/etc/nginx/conf\.d/default\.conf:ro|./nginx-http.conf:/etc/nginx/conf.d/default.conf:ro|' docker-compose.yml
 
   log "HTTP-конфигурация готова ✓"
-  exit 0
+  return 0
 fi
 
 #################################
