@@ -181,7 +181,12 @@ fi
 # CERTBOT RENEWAL SETUP (если LE)
 #################################
 LE_CERT="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
-if [[ "$MODE" == "https" && -f "$LE_CERT" && command -v certbot >/dev/null 2>&1 ]]; then
+HAS_CERTBOT=0
+if command -v certbot >/dev/null 2>&1; then
+  HAS_CERTBOT=1
+fi
+
+if [[ "$MODE" == "https" && -f "$LE_CERT" && "$HAS_CERTBOT" -eq 1 ]]; then
   log "Проверяем авто-обновление сертификатов..."
   if [[ ! -f /etc/cron.d/certbot-fakesite ]]; then
     log "Настраиваем авто-обновление сертификатов..."
