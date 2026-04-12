@@ -97,7 +97,14 @@ need_cmd() {
 
 need_cmd git
 need_cmd curl
-need_cmd docker
+
+# Docker — special handling via get.docker.com
+if ! command -v docker >/dev/null 2>&1; then
+  warn "docker не найден, устанавливаем через get.docker.com..."
+  curl -fsSL https://get.docker.com | sh >/dev/null 2>&1 || die "Не удалось установить Docker"
+  systemctl is-active --quiet docker || systemctl start docker
+  log "docker установлен ✓"
+fi
 
 if ! docker compose version >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
   log "Docker Compose не найден, устанавливаем..."
