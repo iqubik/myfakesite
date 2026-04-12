@@ -116,6 +116,18 @@ fi
 #################################
 log "Обновление исходников из ${REPO_URL} (${BRANCH})..."
 
+# Сохраняем текущий домен ДО обновления (reset --hard может затереть)
+SAVED_DOMAIN=""
+if [[ -f "docker-compose.yml" ]]; then
+  SAVED_DOMAIN=$(grep -oP '/etc/letsencrypt/live/\K[^/]+' docker-compose.yml 2>/dev/null || true)
+  if [[ -z "$SAVED_DOMAIN" ]]; then
+    # Проверяем HTTP-режим
+    if grep -q 'nginx-http\.conf' docker-compose.yml 2>/dev/null; then
+      SAVED_DOMAIN="localhost"
+    fi
+  fi
+fi
+
 git remote set-url origin "$REPO_URL" 2>/dev/null || true
 git fetch origin "$BRANCH"
 
@@ -131,6 +143,39 @@ else
 fi
 
 log "Исходники обновлены до ${BRANCH} ✓"
+
+#################################
+# RESTORE DOMAIN + RE-APPLY CONFIG
+#################################
+log "Применяем конфигурацию..."
+
+if [[ -n "$SAVED_DOMAIN" && "$SAVED_DOMAIN" != "localhost" ]]; then
+  # После reset --hard домен мог вернуться к YOUDOMEN.XXX — восстанавливаем
+  sed -i "s/YOUDOMEN\.XXX/${SAVED_DOMAIN}/g" docker-compose.yml 2>/dev/null || true
+  sed -i "s/YOUDOMEN\.XXX/${SAVED_DOMAIN}/g" data/nginx.conf 2>/dev/null || true
+  log "Домен восстановлен: ${SAVED_DOMAIN}"
+  DOMAIN="$SAVED_DOMAIN"
+  MODE="https"
+elif [[ -n "$SAVED_DOMAIN" ]]; then
+  DOMAIN="localhost"
+  MODE="http"
+  log "Режим: HTTP"
+else
+  warn "Не удалось определить предыдущий домен. Запустите install.sh -d <domain>."
+  DOMAIN="localhost"
+  MODE="http"
+fi
+
+export DOMAIN MODE SSL_CERT_PATH="" SSL_KEY_PATH=""
+
+# Подставляем версию из data/VERSION
+if [[ -f "data/VERSION" ]]; then
+  APP_VERSION=$(tr -d '[:space:]' < data/VERSION)
+  log "Версия приложения: ${APP_VERSION}"
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/index.html 2>/dev/null || true
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/nginx.conf 2>/dev/null || true
+  sed -i "s/VERSION_PLACEHOLDER/${APP_VERSION}/g" data/status.php 2>/dev/null || true
+fi
 
 #################################
 # RESTART CONTAINERS
