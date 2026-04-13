@@ -109,13 +109,21 @@
             pointer-events: auto;
         }
 
+        /* SVG filter for ribbed glass effect */
+        .ribbed-glass-svg {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
         /* Custom inputs with glassmorphism */
         .nc-input {
             width: 100%;
             font-size: 0.875rem;
             border-radius: 0.375rem;
             display: block;
-            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            padding: 0.75rem 0.75rem 0.75rem 1.5rem;
             outline: none;
             background-color: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(60px) saturate(120%);
@@ -149,12 +157,33 @@
 
         .logo-card {
             width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(60px) saturate(120%);
-            -webkit-backdrop-filter: blur(60px) saturate(120%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Ribbed dark tinted crystal glass */
+            background:
+                repeating-linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.015) 0px,
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    -135deg,
+                    rgba(255, 255, 255, 0.01) 0px,
+                    rgba(255, 255, 255, 0.02) 1px,
+                    transparent 1px,
+                    transparent 6px
+                ),
+                rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
+            -webkit-backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 0.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.8),
+                0 2px 8px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            filter: url(#ribbed-glass);
             padding: 1rem 2rem;
             display: flex;
             align-items: center;
@@ -185,12 +214,33 @@
         }
 
         .form-card {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(60px) saturate(120%);
-            -webkit-backdrop-filter: blur(60px) saturate(120%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Ribbed dark tinted crystal glass */
+            background:
+                repeating-linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.015) 0px,
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    -135deg,
+                    rgba(255, 255, 255, 0.01) 0px,
+                    rgba(255, 255, 255, 0.02) 1px,
+                    transparent 1px,
+                    transparent 6px
+                ),
+                rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
+            -webkit-backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 0.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.8),
+                0 2px 8px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            filter: url(#ribbed-glass);
             overflow: hidden;
             position: relative;
             width: 100%;
@@ -302,6 +352,16 @@
 </head>
 <body>
 
+    <!-- SVG filter for ribbed glass effect -->
+    <svg class="ribbed-glass-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="ribbed-glass" x="-5%" y="-5%" width="110%" height="110%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="3" seed="2" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
     <!-- 0. The Planet Background -->
     <div class="bg-planet"></div>
 
@@ -399,6 +459,145 @@
     <script type="module">
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
+        // --- Time-of-Day Parameters (24 brightness levels) ---
+        // Returns { brightness, sunColor, sunIntensity, bgColors, rayColor, particleColor, hour }
+        var getTimeOfDayParams = function() {
+            var now = new Date();
+            var hour = now.getHours();
+            var minute = now.getMinutes();
+            var fractionalHour = hour + minute / 60;
+
+            // 24 brightness levels: 0=midnight (min), 12=noon (max)
+            // Smooth curve: low at 0, rises 5-8, peaks 12, falls 17-21, low again
+            var brightnessCurve = [
+                0.05, // 0:00 — midnight
+                0.03, // 1:00 — deep night
+                0.02, // 2:00 — darkest
+                0.03, // 3:00 — pre-dawn
+                0.08, // 4:00 — first hint of dawn
+                0.20, // 5:00 — dawn
+                0.40, // 6:00 — sunrise
+                0.60, // 7:00 — morning
+                0.75, // 8:00 — morning
+                0.85, // 9:00 — late morning
+                0.92, // 10:00
+                0.97, // 11:00
+                1.00, // 12:00 — noon peak
+                0.97, // 13:00
+                0.92, // 14:00
+                0.85, // 15:00
+                0.75, // 16:00 — afternoon
+                0.60, // 17:00 — late afternoon
+                0.40, // 18:00 — sunset
+                0.25, // 19:00 — dusk
+                0.15, // 20:00 — twilight
+                0.10, // 21:00 — evening
+                0.07, // 22:00 — night
+                0.05  // 23:00 — late night
+            ];
+
+            // Interpolate between hours for smooth transitions
+            var h1 = Math.floor(fractionalHour) % 24;
+            var h2 = (h1 + 1) % 24;
+            var fraction = fractionalHour - Math.floor(fractionalHour);
+            var brightness = brightnessCurve[h1] + (brightnessCurve[h2] - brightnessCurve[h1]) * fraction;
+
+            // Sun color: warm orange at dawn/dusk, white at noon, cool blue at night
+            var sunColor;
+            if (hour >= 6 && hour < 8) {
+                // Dawn: warm orange
+                sunColor = new THREE.Color(0xffaa55);
+            } else if (hour >= 8 && hour < 17) {
+                // Day: warm white
+                sunColor = new THREE.Color(0xfff5e6);
+            } else if (hour >= 17 && hour < 20) {
+                // Dusk: golden orange
+                sunColor = new THREE.Color(0xff8833);
+            } else {
+                // Night: cool blue
+                sunColor = new THREE.Color(0x8899bb);
+            }
+
+            // Sun intensity: scaled by brightness
+            var sunIntensity = 1.0 + brightness * 7.0; // 1.0 (night) to 8.0 (noon)
+
+            // Background gradient colors (teal palette, shifted by brightness)
+            var bgColors;
+            if (brightness < 0.15) {
+                // Deep night: very dark teal
+                bgColors = ['#020c0b', '#041f1e', '#0a2e2c', '#0d4a47'];
+            } else if (brightness < 0.40) {
+                // Dawn/dusk: dark teal with warmth
+                bgColors = ['#0a2e2c', '#0d4a47', '#134e4a', '#1a6b65'];
+            } else if (brightness < 0.75) {
+                // Morning/afternoon: standard teal
+                bgColors = ['#0d4a47', '#134e4a', '#0d9488', '#14b8a6'];
+            } else {
+                // Peak daylight: bright teal
+                bgColors = ['#0f766e', '#0d9488', '#14b8a6', '#2dd4bf'];
+            }
+
+            // Ray color: follows sun
+            var rayColor;
+            if (brightness > 0.6) {
+                rayColor = new THREE.Color(0xddeeff);
+            } else if (brightness > 0.3) {
+                rayColor = new THREE.Color(0xffccaa);
+            } else {
+                rayColor = new THREE.Color(0x667799);
+            }
+
+            // Particle color: teal variant that shifts with brightness
+            var particleColor;
+            if (brightness > 0.7) {
+                particleColor = new THREE.Color(0x99f6e4);
+            } else if (brightness > 0.4) {
+                particleColor = new THREE.Color(0x5eead4);
+            } else if (brightness > 0.15) {
+                particleColor = new THREE.Color(0x2dd4bf);
+            } else {
+                particleColor = new THREE.Color(0x14b8a6);
+            }
+
+            return {
+                brightness: brightness,
+                sunColor: sunColor,
+                sunIntensity: sunIntensity,
+                bgColors: bgColors,
+                rayColor: rayColor,
+                particleColor: particleColor,
+                hour: hour
+            };
+        };
+
+        // --- Guest Session Storage (localStorage, no PII) ---
+        var GUEST_SESSION_KEY = 'ms_guest_session';
+
+        var getGuestSession = function() {
+            try {
+                var data = localStorage.getItem(GUEST_SESSION_KEY);
+                if (data) {
+                    return JSON.parse(data);
+                }
+            } catch (e) {
+                // localStorage unavailable or corrupted
+            }
+            return null;
+        };
+
+        var saveGuestSession = function(params) {
+            try {
+                var session = {
+                    hour: params.hour,
+                    brightness: params.brightness,
+                    visitedAt: new Date().toISOString()
+                };
+                localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(session));
+            } catch (e) {
+                // localStorage unavailable or quota exceeded
+            }
+        };
+
         // --- Server Status Check ---
         (function checkHealth() {
             fetch('/api/status', { method: 'GET', cache: 'no-store' })
@@ -470,28 +669,31 @@
             });
         });
 
-        // --- Utility: Gradient Texture for Background (Cloud Blue Theme) ---
-        function createGradientTexture() {
-            const canvas = document.createElement('canvas');
+        // --- Utility: Gradient Texture for Background (Time-of-Day aware) ---
+        function createGradientTexture(timeParams) {
+            var colors = timeParams && timeParams.bgColors
+                ? timeParams.bgColors
+                : ['#14b8a6', '#0d9488', '#0f766e', '#042f2e']; // default fallback
+
+            var canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 1024;
-            const context = canvas.getContext('2d');
+            var context = canvas.getContext('2d');
 
-            const gradient = context.createRadialGradient(
+            var gradient = context.createRadialGradient(
                 512, 0, 0,
                 512, 0, 1024
             );
 
-            // Teal / aquamarine palette
-            gradient.addColorStop(0.0, '#14b8a6'); // Lighter top
-            gradient.addColorStop(0.4, '#0d9488'); // Primary teal
-            gradient.addColorStop(0.8, '#0f766e'); // Darker
-            gradient.addColorStop(1.0, '#042f2e'); // Deepest
+            gradient.addColorStop(0.0, colors[0]);
+            gradient.addColorStop(0.4, colors[1]);
+            gradient.addColorStop(0.8, colors[2]);
+            gradient.addColorStop(1.0, colors[3]);
 
             context.fillStyle = gradient;
             context.fillRect(0, 0, 1024, 1024);
 
-            const texture = new THREE.CanvasTexture(canvas);
+            var texture = new THREE.CanvasTexture(canvas);
             texture.colorSpace = THREE.SRGBColorSpace;
             texture.mapping = THREE.EquirectangularReflectionMapping;
             return texture;
@@ -549,9 +751,15 @@
             const container = document.getElementById('canvas-container');
             if (!container) return;
 
+            // Get time-of-day parameters
+            const timeParams = getTimeOfDayParams();
+
+            // Save guest session
+            saveGuestSession(timeParams);
+
             // --- Scene & Renderer ---
             const scene = new THREE.Scene();
-            const bgTexture = createGradientTexture();
+            const bgTexture = createGradientTexture(timeParams);
             scene.background = bgTexture;
             scene.environment = createEnvTexture();
 
@@ -566,24 +774,24 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
-            
+            renderer.toneMappingExposure = 0.5 + timeParams.brightness * 1.0; // 0.5 (night) to 1.5 (noon)
+
             container.appendChild(renderer.domElement);
 
-            // --- Lighting ---
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            // --- Lighting (time-of-day aware) ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3 + timeParams.brightness * 0.7);
             scene.add(ambientLight);
 
-            const sunLight = new THREE.DirectionalLight(0xffffff, 5.0);
+            const sunLight = new THREE.DirectionalLight(timeParams.sunColor.getHex(), timeParams.sunIntensity);
             sunLight.position.set(0, 20, 5);
             scene.add(sunLight);
 
-            const rayLight = new THREE.SpotLight(0xddeeff, 20, 60, 0.4, 0.5, 1);
+            const rayLight = new THREE.SpotLight(timeParams.rayColor.getHex(), 10 + timeParams.brightness * 15, 60, 0.4, 0.5, 1);
             rayLight.position.set(5, 15, 5);
             rayLight.lookAt(0, 0, 0);
             scene.add(rayLight);
-            
-            const backLight = new THREE.PointLight(0x14b8a6, 5, 20);
+
+            const backLight = new THREE.PointLight(0x14b8a6, 2 + timeParams.brightness * 4, 20);
             backLight.position.set(-5, 0, -10);
             scene.add(backLight);
 
@@ -622,7 +830,7 @@
             const rayMat = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0 },
-                    uColor: { value: new THREE.Color(0x14b8a6) }
+                    uColor: { value: timeParams.rayColor }
                 },
                 vertexShader: `
                     varying vec2 vUv;
@@ -703,7 +911,7 @@
 
             const particlesMaterial = new THREE.ShaderMaterial({
                 uniforms: {
-                    uColor: { value: new THREE.Color(0x99f6e4) },
+                    uColor: { value: timeParams.particleColor },
                     uPixelRatio: { value: renderer.getPixelRatio() }
                 },
                 vertexShader: `
@@ -810,8 +1018,31 @@
                 particlesMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
             });
 
+            // --- Brightness fade-in animation (smooth ramp-up over ~2 seconds) ---
+            let brightnessFadeIn = 0;
+            const BRIGHTNESS_FADE_DURATION = 2.0; // seconds
+            const initialExposure = renderer.toneMappingExposure;
+            const targetExposure = initialExposure;
+            renderer.toneMappingExposure = 0.3; // start dim
+            const initialAmbient = ambientLight.intensity;
+            ambientLight.intensity = 0.1; // start very dim
+            const initialSun = sunLight.intensity;
+            sunLight.intensity = 0.5; // start dim
+
             const animate = () => {
                 const time = clock.getElapsedTime();
+
+                // Brightness fade-in
+                if (brightnessFadeIn < BRIGHTNESS_FADE_DURATION) {
+                    brightnessFadeIn += 1 / 60; // approximate per-frame increment
+                    var fadeInProgress = Math.min(brightnessFadeIn / BRIGHTNESS_FADE_DURATION, 1.0);
+                    // Smooth easing (ease-out cubic)
+                    fadeInProgress = 1 - Math.pow(1 - fadeInProgress, 3);
+
+                    renderer.toneMappingExposure = 0.3 + (targetExposure - 0.3) * fadeInProgress;
+                    ambientLight.intensity = 0.1 + (initialAmbient - 0.1) * fadeInProgress;
+                    sunLight.intensity = 0.5 + (initialSun - 0.5) * fadeInProgress;
+                }
 
                 mouse.x += (targetMouse.x - mouse.x) * 0.03;
                 mouse.y += (targetMouse.y - mouse.y) * 0.03;

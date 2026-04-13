@@ -1,2 +1,8 @@
 # Personal notes / temp files
 pub.md
+
+# Local dev (self-signed certs, overrides)
+local-ssl/
+docker-compose.local.yml
+data/nginx.local.conf
+docs/screenshot_*.png
