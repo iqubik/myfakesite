@@ -108,6 +108,7 @@ docker compose up -d
 
 <img width="2560" height="1250" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
 
+=======
 
 ### 📖 Уроки и документация
 
