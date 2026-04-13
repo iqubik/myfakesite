@@ -14,7 +14,7 @@
 
 ### Что это?
 
-<img width="2560" height="1250" alt="2026-04-12_22-00-12" src="https://github.com/user-attachments/assets/a01acb94-e843-464b-92fe-b260d7829fd4" />
+<img width="2560" height="1250" alt="2026-04-13_16-12-57" src="https://github.com/user-attachments/assets/9ed3ea55-884c-4ba5-af3b-78577efeec93" />
 
 
 Учебный проект, демонстрирующий подход **Mock API** — техника, при которой frontend-разработчик имитирует ответы сервера прямо на уровне конфигурации Nginx, без написания бэкенда и без базы данных.
@@ -105,6 +105,9 @@ docker compose up -d
 ```
 
 Перед запуском замените `YOUDOMEN.XXX` в `docker-compose.yml` и `nginx.conf` на ваш домен и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
+
+<img width="2560" height="1250" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
+
 
 ### 📖 Уроки и документация
 
