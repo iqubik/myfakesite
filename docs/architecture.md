@@ -78,7 +78,7 @@ flowchart TD
   DefaultLocal --> SetHttp["MODE = http"]
 
   ModeCheck{"DOMAIN тип?"} -->|localhost| SetHttp
-  ModeCheck -->|IP (x.x.x.x)| SetSS["MODE = https-selfsigned"]
+  ModeCheck -->|IP адрес| SetSS["MODE = https-selfsigned"]
   ModeCheck -->|домен| SetLE["MODE = https-domain"]
 
   SetHttp --> PortCheck
@@ -357,11 +357,13 @@ stateDiagram-v2
   Определение --> Domain: домен (-d example.com)
 
   HTTP --> [*]: curl http://localhost
-  SelfSigned --> SelfSignedGen["openssl req -x509\nCN=IP"]
+  SelfSigned --> SelfSignedGen: openssl req -x509, CN=IP
   SelfSignedGen --> [*]: curl -k https://IP
-  Domain --> LECheck{"LE cert\nсуществует?"}
-  LECheck -->|Да| [*]: curl https://domain
-  LECheck -->|Нет| Certbot["certbot certonly\n--standalone"]
+  Domain --> LECheck: проверка LE cert
+  LECheck --> Exists: cert существует
+  LECheck --> NeedCertbot: cert отсутствует
+  Exists --> [*]: curl https://domain
+  NeedCertbot --> Certbot: certbot certonly --standalone
   Certbot --> [*]: curl https://domain
 
   note right of HTTP
