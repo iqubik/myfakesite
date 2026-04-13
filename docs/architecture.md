@@ -54,8 +54,8 @@ flowchart TD
   FileCheck{"Ключевые файлы\nсуществуют?"} -->|Да| Done1["OK: docker-compose.yml,\nnginx.conf, index.html"]
   FileCheck -->|Нет| Die1["die: файлы не найдены"]
 
-  style Die1 fill:#f88
-  style Done1 fill:#8f8
+  style Die1 fill:#f88,color:#000
+  style Done1 fill:#8f8,color:#000
 ```
 
 ## Phase 2 — Domain & Ports
@@ -105,9 +105,9 @@ flowchart TD
 
   UFWOpen --> Done2
 
-  style Die2 fill:#f88
-  style Done2 fill:#8f8
-  style Abort fill:#faa
+  style Die2 fill:#f88,color:#000
+  style Done2 fill:#8f8,color:#000
+  style Abort fill:#faa,color:#000
 ```
 
 ## Phase 3 — Certificates
@@ -144,8 +144,8 @@ flowchart TD
 
   ValidCheck["Проверка срока действия\nopenssl x509 -noout -enddate"] --> Done3b["OK: cert/key готовы\nSSL_MODE = custom|selfsigned|letsencrypt"]
 
-  style Done3 fill:#8f8
-  style Done3b fill:#8f8
+  style Done3 fill:#8f8,color:#000
+  style Done3b fill:#8f8,color:#000
 ```
 
 ## Phase 4 — Apply Configuration
@@ -180,7 +180,7 @@ flowchart TD
   HTTP_PATH --> Done4["OK: конфигурация применена"]
   HTTPS_PATH --> Done4
 
-  style Done4 fill:#8f8
+  style Done4 fill:#8f8,color:#000
 ```
 
 ## Phase 5 — Start & Verify
@@ -211,8 +211,8 @@ flowchart TD
 
   CertbotSetup --> Summary["Сводка:\n- Режим (HTTP/HTTPS)\n- Домен/IP\n- SSL-тип\n- Путь к проекту\n- Команды управления"]
 
-  style Success fill:#8f8
-  style Fail fill:#f88
+  style Success fill:#8f8,color:#000
+  style Fail fill:#f88,color:#000
 ```
 
 ## Update Pipeline
@@ -259,11 +259,11 @@ flowchart TD
   CertbotCheck2 -->|Нет| DoneU
   CreateCron --> DoneU["log: MySphere fakesite\nобновлён до branch ✓"]
 
-  style DieU fill:#f88
-  style DieU2 fill:#f88
-  style ExitUpd fill:#ff8
-  style DoneU fill:#8f8
-  style LogsFail fill:#f88
+  style DieU fill:#f88,color:#000
+  style DieU2 fill:#f88,color:#000
+  style ExitUpd fill:#ff8,color:#000
+  style DoneU fill:#8f8,color:#000
+  style LogsFail fill:#f88,color:#000
 ```
 
 ## Delete Pipeline
@@ -300,9 +300,9 @@ flowchart TD
 
   RmDir --> DoneD["log: MySphere fakesite\nполностью удалён"]
 
-  style ExitDel fill:#ff8
-  style WarnD fill:#ff8
-  style DoneD fill:#8f8
+  style ExitDel fill:#ff8,color:#000
+  style WarnD fill:#ff8,color:#000
+  style DoneD fill:#8f8,color:#000
 ```
 
 ## Complete Project Structure
@@ -337,14 +337,14 @@ graph LR
   Update -.->|обновляет| DC
   Delete -.->|удаляет| DC
 
-  style Install fill:#bbf
-  style Update fill:#bfb
-  style Delete fill:#fbb
-  style P1 fill:#ddf
-  style P2 fill:#ddf
-  style P3 fill:#ddf
-  style P4 fill:#ddf
-  style P5 fill:#ddf
+  style Install fill:#bbf,color:#000
+  style Update fill:#bfb,color:#000
+  style Delete fill:#fbb,color:#000
+  style P1 fill:#ddf,color:#000
+  style P2 fill:#ddf,color:#000
+  style P3 fill:#ddf,color:#000
+  style P4 fill:#ddf,color:#000
+  style P5 fill:#ddf,color:#000
 ```
 
 ## Режимы работы (MODE)
