@@ -5,4 +5,3 @@ pub.md
 local-ssl/
 docker-compose.local.yml
 data/nginx.local.conf
-docs/screenshot_*.png
