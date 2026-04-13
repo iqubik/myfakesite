@@ -1,4 +1,3 @@
-<!-- file: index.html v1.1 -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -31,7 +30,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #0f766e; /* Teal fallback */
+            background-color: #0f4976; /* Teal fallback */
             color: #ffffff;
         }
 
@@ -62,11 +61,11 @@
         }
 
         .animate-fade-in-up {
-            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fadeUp 5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         
         .animate-fade-in {
-            animation: fadeIn 1s ease-out forwards;
+            animation: fadeIn 5s ease-out forwards;
         }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -459,13 +458,19 @@
     <script type="module">
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
+        window.debugTimeOffset = 0;
+
         // --- Time-of-Day Parameters (24 brightness levels) ---
         // Returns { brightness, sunColor, sunIntensity, bgColors, rayColor, particleColor, hour }
         var getTimeOfDayParams = function() {
             var now = new Date();
-            var hour = now.getHours();
-            var minute = now.getMinutes();
-            var fractionalHour = hour + minute / 60;
+            var fractionalHour = now.getHours() + now.getMinutes() / 60 + window.debugTimeOffset;
+            
+            // Normalize fractionalHour to 0-24
+            fractionalHour = fractionalHour % 24;
+            if (fractionalHour < 0) fractionalHour += 24;
+            
+            var hour = Math.floor(fractionalHour);
 
             // 24 brightness levels: 0=midnight (min), 12=noon (max)
             // Smooth curve: low at 0, rises 5-8, peaks 12, falls 17-21, low again
@@ -518,26 +523,24 @@
                 sunColor = new THREE.Color(0x8899bb);
             }
 
-            // Sun intensity: scaled by brightness
-            var sunIntensity = 1.0 + brightness * 7.0; // 1.0 (night) to 8.0 (noon)
+            var sunIntensity = 1.0 + brightness * 7.0;
 
-            // Background gradient colors (teal palette, shifted by brightness)
+            // Background gradient colors (blue palette, shifted by brightness)
             var bgColors;
             if (brightness < 0.15) {
-                // Deep night: very dark teal
-                bgColors = ['#020c0b', '#041f1e', '#0a2e2c', '#0d4a47'];
+                // Deep night: very dark blue
+                bgColors = ['#020814', '#04122b', '#0a2147', '#0d326b'];
             } else if (brightness < 0.40) {
-                // Dawn/dusk: dark teal with warmth
-                bgColors = ['#0a2e2c', '#0d4a47', '#134e4a', '#1a6b65'];
+                // Dawn/dusk: dark blue with warmth
+                bgColors = ['#0a2147', '#0d326b', '#13478c', '#1a60b3'];
             } else if (brightness < 0.75) {
-                // Morning/afternoon: standard teal
-                bgColors = ['#0d4a47', '#134e4a', '#0d9488', '#14b8a6'];
+                // Morning/afternoon: standard blue
+                bgColors = ['#0d326b', '#13478c', '#1d70d6', '#2b8df0'];
             } else {
-                // Peak daylight: bright teal
-                bgColors = ['#0f766e', '#0d9488', '#14b8a6', '#2dd4bf'];
+                // Peak daylight: bright light-blue
+                bgColors = ['#13478c', '#1d70d6', '#2b8df0', '#52a8ff'];
             }
 
-            // Ray color: follows sun
             var rayColor;
             if (brightness > 0.6) {
                 rayColor = new THREE.Color(0xddeeff);
@@ -547,16 +550,16 @@
                 rayColor = new THREE.Color(0x667799);
             }
 
-            // Particle color: teal variant that shifts with brightness
+            // Particle color: blue variant that shifts with brightness
             var particleColor;
             if (brightness > 0.7) {
-                particleColor = new THREE.Color(0x99f6e4);
+                particleColor = new THREE.Color(0x99ccff);
             } else if (brightness > 0.4) {
-                particleColor = new THREE.Color(0x5eead4);
+                particleColor = new THREE.Color(0x5ca8ff);
             } else if (brightness > 0.15) {
-                particleColor = new THREE.Color(0x2dd4bf);
+                particleColor = new THREE.Color(0x2b8df0);
             } else {
-                particleColor = new THREE.Color(0x14b8a6);
+                particleColor = new THREE.Color(0x1d70d6);
             }
 
             return {
@@ -673,7 +676,7 @@
         function createGradientTexture(timeParams) {
             var colors = timeParams && timeParams.bgColors
                 ? timeParams.bgColors
-                : ['#14b8a6', '#0d9488', '#0f766e', '#042f2e']; // default fallback
+                : ['#2b8df0', '#1d70d6', '#13478c', '#0a2147']; // default fallback
 
             var canvas = document.createElement('canvas');
             canvas.width = 1024;
@@ -700,25 +703,25 @@
         }
 
         // --- Utility: Environment Map for Reflections ---
-        function createEnvTexture() {
+        function createEnvTexture(timeParams) {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 512;
             const context = canvas.getContext('2d');
             
-            context.fillStyle = '#042f2e';
+            context.fillStyle = timeParams ? timeParams.bgColors[1] : '#04122b';
             context.fillRect(0, 0, 1024, 512);
             
             const gradient = context.createRadialGradient(512, 256, 0, 512, 256, 256);
             gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.1, '#88ddff');
+            gradient.addColorStop(0.1, timeParams ? timeParams.bgColors[3] : '#88ddff');
             gradient.addColorStop(1, 'transparent');
             context.fillStyle = gradient;
             context.fillRect(0, 0, 1024, 512);
             
             const gradient2 = context.createRadialGradient(200, 150, 0, 200, 150, 150);
             gradient2.addColorStop(0, '#ffffff');
-            gradient2.addColorStop(0.2, '#44aaff');
+            gradient2.addColorStop(0.2, timeParams ? timeParams.bgColors[2] : '#44aaff');
             gradient2.addColorStop(1, 'transparent');
             context.fillStyle = gradient2;
             context.fillRect(0, 0, 1024, 512);
@@ -761,7 +764,16 @@
             const scene = new THREE.Scene();
             const bgTexture = createGradientTexture(timeParams);
             scene.background = bgTexture;
-            scene.environment = createEnvTexture();
+            scene.environment = createEnvTexture(timeParams);
+
+            // Update DOM elements dynamically
+            document.body.style.backgroundColor = timeParams.bgColors[0];
+            const planet = document.querySelector('.bg-planet');
+            if (planet) {
+                planet.style.background = `radial-gradient(ellipse at top, ${timeParams.bgColors[2]} 0%, ${timeParams.bgColors[0]} 100%)`;
+                planet.style.boxShadow = `0 -5px 60px ${timeParams.bgColors[3]}80, inset 0 5px 20px rgba(255, 255, 255, 0.4)`;
+                planet.style.borderTop = `2px solid ${timeParams.bgColors[3]}40`;
+            }
 
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 7.0;
@@ -774,24 +786,24 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 0.5 + timeParams.brightness * 1.0; // 0.5 (night) to 1.5 (noon)
+            renderer.toneMappingExposure = 0.15; // Start dim (halved from 0.3)
 
             container.appendChild(renderer.domElement);
 
-            // --- Lighting (time-of-day aware) ---
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3 + timeParams.brightness * 0.7);
+            // --- Lighting (time-of-day aware, halved daytime brightness) ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
             scene.add(ambientLight);
 
-            const sunLight = new THREE.DirectionalLight(timeParams.sunColor.getHex(), timeParams.sunIntensity);
+            const sunLight = new THREE.DirectionalLight(timeParams.sunColor.getHex(), 0.25);
             sunLight.position.set(0, 20, 5);
             scene.add(sunLight);
 
-            const rayLight = new THREE.SpotLight(timeParams.rayColor.getHex(), 10 + timeParams.brightness * 15, 60, 0.4, 0.5, 1);
+            const rayLight = new THREE.SpotLight(timeParams.rayColor.getHex(), 5 + timeParams.brightness * 7.5, 60, 0.4, 0.5, 1);
             rayLight.position.set(5, 15, 5);
             rayLight.lookAt(0, 0, 0);
             scene.add(rayLight);
 
-            const backLight = new THREE.PointLight(0x14b8a6, 2 + timeParams.brightness * 4, 20);
+            const backLight = new THREE.PointLight(timeParams.particleColor.getHex(), 1 + timeParams.brightness * 2, 20);
             backLight.position.set(-5, 0, -10);
             scene.add(backLight);
 
@@ -803,7 +815,7 @@
                 color: 0xffffff,
                 roughness: 0.85,
                 metalness: 0.1,
-                emissive: 0x042f2e, // Faint teal core
+                emissive: new THREE.Color(timeParams.bgColors[1]), // Dynamic core
                 emissiveIntensity: 0.6
             });
 
@@ -877,7 +889,7 @@
             rayMesh.position.z = -3;
             scene.add(rayMesh);
 
-            const coreLight = new THREE.PointLight(0x00ffff, 10, 15);
+            const coreLight = new THREE.PointLight(timeParams.particleColor.getHex(), 10, 15);
             coreLight.position.set(0, 0, -2);
             scene.add(coreLight);
 
@@ -1018,30 +1030,85 @@
                 particlesMaterial.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
             });
 
-            // --- Brightness fade-in animation (smooth ramp-up over ~2 seconds) ---
+            // --- Brightness fade-in animation (smooth ramp-up over ~5 seconds) ---
             let brightnessFadeIn = 0;
-            const BRIGHTNESS_FADE_DURATION = 2.0; // seconds
-            const initialExposure = renderer.toneMappingExposure;
-            const targetExposure = initialExposure;
-            renderer.toneMappingExposure = 0.3; // start dim
-            const initialAmbient = ambientLight.intensity;
-            ambientLight.intensity = 0.1; // start very dim
-            const initialSun = sunLight.intensity;
-            sunLight.intensity = 0.5; // start dim
+            const BRIGHTNESS_FADE_DURATION = 5.0; // seconds
+            let targetExposure = 0.5 + timeParams.brightness * 1.0;
+            let targetAmbient = 0.3 + timeParams.brightness * 0.7;
+            let targetSun = timeParams.sunIntensity;
+
+            // --- Debug Mode (Click Logo to advance time by 6 hours) ---
+            const logoIcon = document.querySelector('.logo-icon');
+            if (logoIcon) {
+                logoIcon.style.cursor = 'pointer';
+                logoIcon.addEventListener('click', () => {
+                    window.debugTimeOffset += 6;
+                    const newParams = getTimeOfDayParams();
+                    
+                    // Update textures
+                    const newBgGradient = document.createElement('canvas').getContext('2d');
+                    newBgGradient.canvas.width = 1024; newBgGradient.canvas.height = 1024;
+                    const grad1 = newBgGradient.createRadialGradient(512, 0, 0, 512, 0, 1024);
+                    grad1.addColorStop(0.0, newParams.bgColors[0]);
+                    grad1.addColorStop(0.4, newParams.bgColors[1]);
+                    grad1.addColorStop(0.8, newParams.bgColors[2]);
+                    grad1.addColorStop(1.0, newParams.bgColors[3]);
+                    newBgGradient.fillStyle = grad1;
+                    newBgGradient.fillRect(0, 0, 1024, 1024);
+                    const newBgTex = new THREE.CanvasTexture(newBgGradient.canvas);
+                    newBgTex.colorSpace = THREE.SRGBColorSpace;
+                    newBgTex.mapping = THREE.EquirectangularReflectionMapping;
+                    scene.background = newBgTex;
+
+                    scene.environment = createEnvTexture(newParams);
+                    
+                    // Update DOM
+                    document.body.style.backgroundColor = newParams.bgColors[0];
+                    const planet = document.querySelector('.bg-planet');
+                    if (planet) {
+                        planet.style.background = `radial-gradient(ellipse at top, ${newParams.bgColors[2]} 0%, ${newParams.bgColors[0]} 100%)`;
+                        planet.style.boxShadow = `0 -5px 60px ${newParams.bgColors[3]}80, inset 0 5px 20px rgba(255, 255, 255, 0.4)`;
+                        planet.style.borderTop = `2px solid ${newParams.bgColors[3]}40`;
+                    }
+
+                    // Update Lights & Materials
+                    sunLight.color.copy(newParams.sunColor);
+                    rayLight.color.copy(newParams.rayColor);
+                    rayMat.uniforms.uColor.value.copy(newParams.rayColor);
+                    particlesMaterial.uniforms.uColor.value.copy(newParams.particleColor);
+                    backLight.color.copy(newParams.particleColor);
+                    coreLight.color.copy(newParams.particleColor);
+                    material.emissive.copy(new THREE.Color(newParams.bgColors[1]));
+                    
+                    // Update Brightness Targets (halved daytime brightness)
+                    targetExposure = 0.25 + newParams.brightness * 0.5;
+                    targetAmbient = 0.15 + newParams.brightness * 0.35;
+                    targetSun = newParams.sunIntensity;
+                    rayLight.intensity = 5 + newParams.brightness * 7.5;
+                    backLight.intensity = 1 + newParams.brightness * 2;
+                    
+                    // If fade-in is already complete, update immediately
+                    if (brightnessFadeIn >= BRIGHTNESS_FADE_DURATION) {
+                        renderer.toneMappingExposure = targetExposure;
+                        ambientLight.intensity = targetAmbient;
+                        sunLight.intensity = targetSun;
+                    }
+                });
+            }
 
             const animate = () => {
                 const time = clock.getElapsedTime();
 
-                // Brightness fade-in
+                // Brightness fade-in (halved daytime brightness)
                 if (brightnessFadeIn < BRIGHTNESS_FADE_DURATION) {
                     brightnessFadeIn += 1 / 60; // approximate per-frame increment
                     var fadeInProgress = Math.min(brightnessFadeIn / BRIGHTNESS_FADE_DURATION, 1.0);
                     // Smooth easing (ease-out cubic)
                     fadeInProgress = 1 - Math.pow(1 - fadeInProgress, 3);
 
-                    renderer.toneMappingExposure = 0.3 + (targetExposure - 0.3) * fadeInProgress;
-                    ambientLight.intensity = 0.1 + (initialAmbient - 0.1) * fadeInProgress;
-                    sunLight.intensity = 0.5 + (initialSun - 0.5) * fadeInProgress;
+                    renderer.toneMappingExposure = 0.15 + (targetExposure - 0.15) * fadeInProgress;
+                    ambientLight.intensity = 0.05 + (targetAmbient - 0.05) * fadeInProgress;
+                    sunLight.intensity = 0.25 + (targetSun - 0.25) * fadeInProgress;
                 }
 
                 mouse.x += (targetMouse.x - mouse.x) * 0.03;
