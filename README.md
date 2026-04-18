@@ -95,7 +95,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 ```bash
 # Обновить до последней версии
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -y
-
+```
+```bash
 # Обновить до конкретной ветки/репозитория
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b main -y
 ```
