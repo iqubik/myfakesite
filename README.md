@@ -68,6 +68,11 @@
 
 > Это **опциональный** способ. Если предпочитаете ручной запуск — просто `git clone` и `docker compose up -d` (см. ниже).
 
+```
+# Интерактивный режим (скрипт задаст вопросы)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
+```
+
 ```bash
 # HTTP-режим, localhost (молча, без вопросов)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -y
@@ -78,8 +83,6 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 # С self-signed сертификатом (по IP, молча)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100 -y
 
-# Интерактивный режим (скрипт задаст вопросы)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
 ```
 
 Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся с ошибкой. Без `-y` скрипт предложит варианты действий.
