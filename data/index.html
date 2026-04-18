@@ -1038,12 +1038,12 @@
             let targetAmbient = 0.3 + timeParams.brightness * 0.7;
             let targetSun = timeParams.sunIntensity;
 
-            // --- Debug Mode (Click Logo to advance time by 6 hours) ---
+            // --- Debug Mode (Click Logo to advance time by 2 hours) ---
             const logoIcon = document.querySelector('.logo-icon');
             if (logoIcon) {
                 logoIcon.style.cursor = 'pointer';
                 logoIcon.addEventListener('click', () => {
-                    window.debugTimeOffset += 6;
+                    window.debugTimeOffset += 2;
                     const newParams = getTimeOfDayParams();
                     
                     // Update textures
