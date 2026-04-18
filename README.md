@@ -218,6 +218,8 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 | `-f` | delete | Без подтверждения |
 | `-h` | все | Показать справку
 
+<img width="2560" height="1000" alt="image" src="https://github.com/user-attachments/assets/3fc134e5-6759-4160-9c37-3ec1ca21f19f" />
+
 ---
 
 ## 🇬🇧 English
