@@ -421,4 +421,5 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 
 **License:** MIT
 
-<img width="1476" height="1112" alt="image" src="https://github.com/user-attachments/assets/8bc2036e-357c-4c5e-87b0-bdb85b302e2e" />
+<img width="1149" height="1037" alt="image" src="https://github.com/user-attachments/assets/210d2c33-ef75-4e3a-b5fa-aa30aa677fe5" />
+
