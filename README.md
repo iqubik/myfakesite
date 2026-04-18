@@ -110,7 +110,7 @@ docker compose up -d
 
 Перед запуском замените `YOUDOMEN.XXX` в `docker-compose.yml` и `nginx.conf` на ваш домен и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
 
-<img width="2560" height="1000" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
+---
 
 ### 📖 Уроки и документация
 
@@ -421,6 +421,4 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 
 **License:** MIT
 
-<img width="1033" height="1016" alt="image" src="https://github.com/user-attachments/assets/bc0a02c8-841a-47b0-b977-63fa4c0c96ae" />
-
-
+<img width="2560" height="1000" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
