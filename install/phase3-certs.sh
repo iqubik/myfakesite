@@ -210,7 +210,7 @@ if [[ "$SSL_MODE" != "letsencrypt" ]]; then
 
   # Проверяем, не занят ли путь существующим чужим сертификатом
   if [[ -f "$SSL_CERT_PATH" && -f "$SSL_KEY_PATH" ]]; then
-    local existing_issuer
+    existing_issuer=""
     existing_issuer=$(openssl x509 -in "$SSL_CERT_PATH" -noout -issuer 2>/dev/null || true)
     if [[ -n "$existing_issuer" ]] && ! echo "$existing_issuer" | grep -qi "MySphere\|fake"; then
       warn "В $SSL_DIR уже есть сертификат: $existing_issuer"

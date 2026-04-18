@@ -187,6 +187,19 @@ fi
 
 export DOMAIN MODE SSL_CERT_PATH="" SSL_KEY_PATH=""
 
+# Для HTTP-режима обязательно пере-применяем Phase 4 логику:
+# - генерируем nginx-http.conf
+# - убираем 443/SSL-монты из docker-compose.yml
+# Это гарантирует идемпотентность после git reset/merge.
+if [[ "$MODE" == "http" ]]; then
+  if [[ -f "install/phase4-apply.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "install/phase4-apply.sh"
+  else
+    die "Не найден install/phase4-apply.sh — не могу применить HTTP-конфигурацию"
+  fi
+fi
+
 # Подставляем версию из data/VERSION
 if [[ -f "data/VERSION" ]]; then
   APP_VERSION=$(tr -d '[:space:]' < data/VERSION)
@@ -261,6 +274,25 @@ CRON
     chmod 644 /etc/cron.d/certbot-fakesite
     log "cron job создан ✓"
   fi
+fi
+
+#################################
+# ACCESS LOG ROTATION CRON (no logrotate)
+#################################
+mkdir -p /var/log/myfakesite
+touch /var/log/myfakesite/access.log
+
+LOG_ROTATE_SCRIPT="${PROJECT_DIR}/data/log-rotate-by-size.sh"
+if [[ -f "$LOG_ROTATE_SCRIPT" ]]; then
+  chmod 755 "$LOG_ROTATE_SCRIPT" 2>/dev/null || true
+  cat > /etc/cron.d/myfakesite-log-rotate <<CRON
+# MySphere fakesite — access log rotation by size (1 MiB), without logrotate
+*/5 * * * * root ${LOG_ROTATE_SCRIPT} >/dev/null 2>&1
+CRON
+  chmod 644 /etc/cron.d/myfakesite-log-rotate
+  log "cron для ротации access.log подтверждён ✓"
+else
+  warn "Скрипт ротации логов не найден: $LOG_ROTATE_SCRIPT"
 fi
 
 #################################

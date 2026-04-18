@@ -59,6 +59,7 @@ server {
     listen [::]:80;
 
     server_tokens off;
+    access_log off;
 
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -95,6 +96,7 @@ server {
 
     location ~ ^/api/auth$ {
         limit_req zone=auth_limit burst=2 nodelay;
+        access_log /var/log/myfakesite/access.log combined;
 
         default_type application/json;
         add_header X-Request-Id "$request_id" always;
@@ -179,6 +181,9 @@ Expires: 2027-01-01T00:00:00Z
         add_header Cache-Control "public, immutable" always;
         add_header X-Content-Type-Options "nosniff" always;
     }
+
+    location = /log-rotate-by-size.sh { return 404; }
+    location = /data/log-rotate-by-size.sh { return 404; }
 
     location ~ \.php$ {
         root /usr/share/nginx/html;

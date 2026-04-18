@@ -36,15 +36,27 @@ need_root() {
 }
 
 resolve_compose_cmd() {
+  COMPOSE_AVAILABLE=0
   if docker compose version >/dev/null 2>&1; then
     COMPOSE_CMD=("docker" "compose")
+    COMPOSE_AVAILABLE=1
     return 0
   fi
   if command -v docker-compose >/dev/null 2>&1; then
     COMPOSE_CMD=("docker-compose")
+    COMPOSE_AVAILABLE=1
     return 0
   fi
-  die "Не найден Docker Compose (ни v2 plugin, ни v1 binary)"
+  warn "Docker Compose не найден — шаги compose down будут пропущены"
+  return 1
+}
+
+cleanup_system_artifacts() {
+  log "Очищаем системные артефакты MySphere..."
+
+  rm -f /etc/cron.d/myfakesite-log-rotate 2>/dev/null || true
+
+  rm -rf /var/log/myfakesite 2>/dev/null || true
 }
 
 PROJECT_DIR="/opt/myfakesite"
@@ -86,11 +98,15 @@ fi
 # START
 #################################
 need_root
-resolve_compose_cmd
+resolve_compose_cmd || true
 echo ""
 echo "[INFO] Версия скрипта: 1.1.6"
 echo ""
-log "Compose команда: ${COMPOSE_CMD[*]}"
+if [[ "${COMPOSE_AVAILABLE:-0}" -eq 1 ]]; then
+  log "Compose команда: ${COMPOSE_CMD[*]}"
+else
+  warn "Compose команда недоступна"
+fi
 
 log "Начинаем удаление MySphere fakesite"
 
@@ -129,6 +145,7 @@ if [[ ! -d "$PROJECT_DIR" ]]; then
 
   # Чистим временные файлы install
   rm -rf /tmp/myfakesite-install 2>/dev/null || true
+  cleanup_system_artifacts
 
   log "✔ MySphere fakesite уже удалён"
   exit 0
@@ -139,10 +156,10 @@ cd "$PROJECT_DIR"
 #################################
 # DOCKER COMPOSE DOWN
 #################################
-if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+if [[ "${COMPOSE_AVAILABLE:-0}" -eq 1 ]]; then
   if [[ -f docker-compose.yml ]]; then
     log "Останавливаем контейнеры MySphere fakesite"
-    docker compose down --volumes --remove-orphans || warn "Ошибка при docker compose down"
+    "${COMPOSE_CMD[@]}" down --volumes --remove-orphans || warn "Ошибка при docker compose down"
 
     # VERIFY: контейнеры остановлены
     remaining=$(docker ps -a --filter 'name=fakesite' --format '{{.Names}}' 2>/dev/null || true)
@@ -218,6 +235,12 @@ fi
 log "Очищаем временные файлы установки..."
 rm -rf /tmp/myfakesite-install 2>/dev/null || true
 log "Временные файлы удалены ✓"
+
+#################################
+# CLEAN SYSTEM ARTIFACTS
+#################################
+cleanup_system_artifacts
+log "Системные артефакты очищены ✓"
 
 #################################
 # REMOVE DIRECTORY

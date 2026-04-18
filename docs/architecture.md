@@ -1,5 +1,23 @@
-<!-- file: architecture.md v1.0 -->
+<!-- file: architecture.md v1.1 -->
 # MySphere fakesite — Architecture & Logic Flow
+
+## Security & Logging Addendum (v1.1)
+
+```mermaid
+flowchart TD
+  A["Nginx: global access_log off"] --> B["location /api/auth: access_log /var/log/myfakesite/access.log"]
+  B --> C["Host bind mount: /var/log/myfakesite:/var/log/myfakesite"]
+  C --> D["Cron: /etc/cron.d/myfakesite-log-rotate (*/5)"]
+  D --> E["/opt/myfakesite/data/log-rotate-by-size.sh"]
+  E --> F["Rotate at 1 MiB + keep 7 days"]
+  B --> G["Manual fail2ban integration via README (filter + jail)"]
+  A --> H["Deny direct script access: /log-rotate-by-size.sh and /data/log-rotate-by-size.sh -> 404"]
+```
+
+Notes:
+- Login attempts are represented by `POST /api/auth` events (`401`/`429`) in `/var/log/myfakesite/access.log`.
+- `myfakesite-log-rotate` is project-owned cron; certbot cron is separate lifecycle.
+- `delete.sh` removes only project log artifacts (`myfakesite-log-rotate`, `/var/log/myfakesite`) and preserves certbot/certificates.
 
 ## Install Pipeline Overview
 
@@ -205,11 +223,14 @@ flowchart TD
   HTTPCode -->|Нет| Fail["warn: Сайт не отвечает\ndocker compose logs"]
 
   Success --> SSLModeCheck{"SSL_MODE ==\nletsencrypt?"}
+  Success --> LogRotateSetup["chmod +x data/log-rotate-by-size.sh\nсоздать /etc/cron.d/myfakesite-log-rotate\n*/5 * * * * root script"]
 
   SSLModeCheck -->|Да| CertbotSetup["mkdir /etc/myfakesite\necho PROJECT_DIR > project_path\nсоздать /etc/cron.d/certbot-fakesite\nwebroot renew 3:00 AM"]
   SSLModeCheck -->|Нет| Summary
+  CertbotSetup --> Summary
+  LogRotateSetup --> Summary
 
-  CertbotSetup --> Summary["Сводка:\n- Режим (HTTP/HTTPS)\n- Домен/IP\n- SSL-тип\n- Путь к проекту\n- Команды управления"]
+  Summary["Сводка:\n- Режим (HTTP/HTTPS)\n- Домен/IP\n- SSL-тип\n- Путь к проекту\n- Команды управления"]
 
   style Success fill:#8f8,color:#000
   style Fail fill:#f88,color:#000
@@ -232,12 +253,16 @@ flowchart TD
   ConfirmY -->|Нет| ExitUpd["exit 1: отменено"]
   ConfirmY -->|Да| GitUpdate["git remote set-url\ngit fetch origin branch\ngit checkout branch\ngit merge --ff-only FETCH_HEAD"]
 
-  GitUpdate --> VersionCheck{"data/VERSION\nсуществует?"}
+  GitUpdate --> ModeCheckU{"MODE?\n(saved domain)"}
+  ModeCheckU -->|HTTP| HttpReapply["source install/phase4-apply.sh\n(пересоздать nginx-http.conf,\nпорты/SSL volumes для HTTP)"]
+  ModeCheckU -->|HTTPS| VersionCheck
+  HttpReapply --> VersionCheck{"data/VERSION\nсуществует?"}
 
   VersionCheck -->|Да| BumpVer["_bump_version()\nтекущая → новая версия"]
-  VersionCheck -->|Нет| Restart
 
-  BumpVer --> Restart["docker compose up -d\n--remove-orphans --force-recreate"]
+  BumpVer --> LogRotateCron["/etc/cron.d/myfakesite-log-rotate\n*/5 -> data/log-rotate-by-size.sh"]
+  VersionCheck -->|Нет| LogRotateCron
+  LogRotateCron --> Restart["docker compose up -d\n--remove-orphans --force-recreate"]
 
   Restart --> CheckContainers["check_containers_running\n(polling 60s)"]
 
@@ -277,12 +302,12 @@ flowchart TD
 
   RootD --> DirCheckD{"PROJECT_DIR\nсуществует?"}
 
-  DirCheckD -->|Нет| WarnD["warn: удалять нечего\nexit 0"]
+  DirCheckD -->|Нет| WarnD["warn: удалять нечего"]
   DirCheckD -->|Да| CdD["cd PROJECT_DIR"]
 
-  CdD --> DockerCheckD{"docker +\ndocker compose\nустановлены?"}
+  CdD --> DockerCheckD{"docker compose\nдоступен?"}
 
-  DockerCheckD -->|Нет| SkipDocker["warn: пропуск"]
+  DockerCheckD -->|Нет| SkipDocker["warn: compose недоступен,\nпропуск compose down"]
   DockerCheckD -->|Да| ComposeYML{"docker-compose.yml\nсуществует?"}
 
   ComposeYML -->|Да| ComposeDown["docker compose down\n--volumes --remove-orphans"]
@@ -295,8 +320,12 @@ flowchart TD
   CleanImages["docker images | grep\nmyfakesite|fakesite | xargs rmi -f"] --> CleanNetworks["docker network rm\norphan сети (root_fakesite)"]
 
   CleanNetworks --> CleanTmp["rm -rf /tmp/myfakesite-install"]
+  CleanTmp --> CleanArtifacts["cleanup_system_artifacts:\nrm /etc/cron.d/myfakesite-log-rotate\nrm -rf /var/log/myfakesite"]
+  CleanArtifacts --> PreserveCerts["СОХРАНИТЬ:\n/etc/letsencrypt\n/etc/cron.d/certbot-fakesite\n/etc/myfakesite/*"]
 
-  CleanTmp --> RmDir["rm -rf PROJECT_DIR"]
+  PreserveCerts --> RmDir["rm -rf PROJECT_DIR"]
+  WarnD --> CleanArtifactsNoDir["cleanup_system_artifacts\n(даже если проекта уже нет)"]
+  CleanArtifactsNoDir --> DoneD
 
   RmDir --> DoneD["log: MySphere fakesite\nполностью удалён"]
 
@@ -327,6 +356,7 @@ graph LR
     DC["docker-compose.yml\nnginx + php-fpm"]
     NC["nginx.conf\nHTTPS server"]
     NC_HTTP["nginx-http.conf\nHTTP (создаётся в фазе 4)"]
+    LR["data/log-rotate-by-size.sh\nrotation 1MiB / 7 days"]
     IDX["index.html"]
     PHP["phpinfo.php, status.php"]
   end

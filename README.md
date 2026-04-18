@@ -203,7 +203,45 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 - Удаляет Docker-образы проекта
 - `rm -rf` директории проекта
 
-> **Важно:** `delete.sh` **не трогает** `/etc/letsencrypt/`, cron-задания и другие системные файлы — сертификаты и настройки остаются на сервере.
+> **Важно:** `delete.sh` удаляет только cron ротации логов (`myfakesite-log-rotate`) и логи `/var/log/myfakesite`. Скрипт **не трогает** `/etc/letsencrypt/` и `certbot`-cron (`certbot-fakesite`) — сертификаты и автообновление остаются на сервере.
+
+#### 🔐 Интеграция с fail2ban
+
+Проект пишет попытки логина в файл:
+
+`/var/log/myfakesite/access.log`
+
+Логируются только запросы к `POST /api/auth` (статусы `401`/`429`).
+
+Создайте фильтр `/etc/fail2ban/filter.d/myfakesite-auth.conf`:
+
+```ini
+[Definition]
+failregex = ^<HOST> - .* "POST /api/auth(?:\\?.*)? HTTP/[0-9.]+" (401|429) .*
+ignoreregex =
+```
+
+Создайте jail `/etc/fail2ban/jail.d/myfakesite-auth.local`:
+
+```ini
+[myfakesite-auth]
+enabled  = true
+port     = http,https
+filter   = myfakesite-auth
+logpath  = /var/log/myfakesite/access.log
+backend  = auto
+findtime = 10m
+maxretry = 5
+bantime  = 1h
+```
+
+Проверка и запуск:
+
+```bash
+sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfakesite-auth.conf
+sudo systemctl restart fail2ban
+sudo fail2ban-client status myfakesite-auth
+```
 
 #### Параметры скриптов
 
@@ -405,7 +443,45 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | 
 - Removes project Docker images
 - `rm -rf` project directory
 
-> **Important:** `delete.sh` does **not** touch `/etc/letsencrypt/`, cron jobs, or other system files — certificates and settings remain on the server.
+> **Important:** `delete.sh` removes only log-rotation cron (`myfakesite-log-rotate`) and `/var/log/myfakesite`. It does **not** touch `/etc/letsencrypt/` or certbot cron (`certbot-fakesite`) — certificates and auto-renewal remain on the server.
+
+#### 🔐 fail2ban Integration
+
+The project writes login attempts to:
+
+`/var/log/myfakesite/access.log`
+
+Only `POST /api/auth` attempts are logged there (`401`/`429`).
+
+Create `/etc/fail2ban/filter.d/myfakesite-auth.conf`:
+
+```ini
+[Definition]
+failregex = ^<HOST> - .* "POST /api/auth(?:\\?.*)? HTTP/[0-9.]+" (401|429) .*
+ignoreregex =
+```
+
+Create `/etc/fail2ban/jail.d/myfakesite-auth.local`:
+
+```ini
+[myfakesite-auth]
+enabled  = true
+port     = http,https
+filter   = myfakesite-auth
+logpath  = /var/log/myfakesite/access.log
+backend  = auto
+findtime = 10m
+maxretry = 5
+bantime  = 1h
+```
+
+Validate and enable:
+
+```bash
+sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfakesite-auth.conf
+sudo systemctl restart fail2ban
+sudo fail2ban-client status myfakesite-auth
+```
 
 #### Script Parameters
 

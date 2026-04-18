@@ -27,6 +27,8 @@ services:
       - ./data/apple-touch-icon.png:/usr/share/nginx/html/apple-touch-icon.png:ro
       - ./data/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./data/VERSION:/usr/share/nginx/html/VERSION:ro
+      # Dedicated auth attempts log storage on host
+      - /var/log/myfakesite:/var/log/myfakesite
       # Let's Encrypt ACME challenge (for certbot webroot validation)
       # Челлендж Let's Encrypt (для валидации certbot через webroot)
       - /var/www/acme-challenge:/usr/share/nginx/html/.well-known/acme-challenge

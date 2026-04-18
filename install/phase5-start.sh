@@ -88,6 +88,25 @@ CRON
 fi
 
 #################################
+# ACCESS LOG ROTATION (CRON, no logrotate)
+#################################
+mkdir -p /var/log/myfakesite
+touch /var/log/myfakesite/access.log
+
+LOG_ROTATE_SCRIPT="${PROJECT_DIR}/data/log-rotate-by-size.sh"
+if [[ -f "$LOG_ROTATE_SCRIPT" ]]; then
+  chmod 755 "$LOG_ROTATE_SCRIPT" 2>/dev/null || true
+  cat > /etc/cron.d/myfakesite-log-rotate <<CRON
+# MySphere fakesite — access log rotation by size (1 MiB), without logrotate
+*/5 * * * * root ${LOG_ROTATE_SCRIPT} >/dev/null 2>&1
+CRON
+  chmod 644 /etc/cron.d/myfakesite-log-rotate
+  log "cron job создан: /etc/cron.d/myfakesite-log-rotate (каждые 5 минут) ✓"
+else
+  warn "Скрипт ротации логов не найден: $LOG_ROTATE_SCRIPT"
+fi
+
+#################################
 # SUMMARY
 #################################
 echo ""
@@ -102,7 +121,7 @@ if [[ "$MODE" == "http" ]]; then
   log "  Порт:        80"
   echo ""
   log "  Для HTTPS с доменом:"
-  log "    sudo ./update.sh -d <domain>"
+  log "    sudo ./install.sh -d <domain>"
 else
   log "  Режим:       HTTPS"
   log "  URL:         https://${DOMAIN}"
