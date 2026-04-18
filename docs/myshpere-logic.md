@@ -181,9 +181,9 @@ flowchart TD
   H8 --> SOff
   SOff --> Resp["Ответ клиенту\nс полным набором заголовков"]
 
-  style TLS1 fill:#bbf
-  style HEADERS fill:#bfb
-  style SOff fill:#ffb
+  style TLS1 fill:#bbf,color:#000
+  style HEADERS fill:#bfb,color:#000
+  style SOff fill:#ffb,color:#000
 ```
 
 ## Docker Container Topology
@@ -229,11 +229,11 @@ flowchart TB
   VOLUMES -. volumes .-> NGINX_CONTAINER
   VOLUMES -. volumes .-> PHP_CONTAINER
 
-  style NGINX_CONTAINER fill:#bfb
-  style PHP_CONTAINER fill:#bbf
-  style NETWORK fill:#ffd
-  style VOLUMES fill:#ffb
-  style CERTS fill:#fbb
+  style NGINX_CONTAINER fill:#bfb,color:#000
+  style PHP_CONTAINER fill:#bbf,color:#000
+  style NETWORK fill:#ffd,color:#000
+  style VOLUMES fill:#ffb,color:#000
+  style CERTS fill:#fbb,color:#000
 ```
 
 ## Frontend — SPA Application Flow
@@ -292,10 +292,10 @@ flowchart TD
   H1 -. независимо .-> H2
   H1 -.catch.-> H3
 
-  style THREED fill:#ddf
-  style FORM fill:#ffd
-  style AUTH_FLOW fill:#fdd
-  style HEALTH fill:#dfd
+  style THREED fill:#ddf,color:#000
+  style FORM fill:#ffd,color:#000
+  style AUTH_FLOW fill:#fdd,color:#000
+  style HEALTH fill:#dfd,color:#000
 ```
 
 ## Three.js Rendering Pipeline
@@ -341,10 +341,10 @@ flowchart LR
   L3 --> R5
   L4 --> R5
 
-  style GEOMETRY fill:#ddf
-  style MATERIAL fill:#ffd
-  style RENDER fill:#dfd
-  style LIGHTING fill:#fdd
+  style GEOMETRY fill:#ddf,color:#000
+  style MATERIAL fill:#ffd,color:#000
+  style RENDER fill:#dfd,color:#000
+  style LIGHTING fill:#fdd,color:#000
 ```
 
 ## SPA Routing — try_files Logic
@@ -378,9 +378,9 @@ flowchart TD
   ProxyPHP --> Client
   ServeStatic --> Client
 
-  style RouteAPI fill:#bfb
-  style ProxyPHP fill:#bbf
-  style ServeStatic fill:#ffd
+  style RouteAPI fill:#bfb,color:#000
+  style ProxyPHP fill:#bbf,color:#000
+  style ServeStatic fill:#ffd,color:#000
 ```
 
 ## Health & Maintenance — PHP vs Mock
@@ -416,11 +416,11 @@ flowchart TD
 
   H1 -. для мониторинга .-> Monitor["Мониторинг:\nпроверка alive каждые N сек\n$msec = nginx timestamp"]
 
-  style MOCK_API fill:#bfb
-  style PHP_HEALTH fill:#bbf
-  style PHP_DEBUG fill:#ffb
-  style HEARTBEAT fill:#dfd
-  style FRONTEND_CHECK fill:#fdd
+  style MOCK_API fill:#bfb,color:#000
+  style PHP_HEALTH fill:#bbf,color:#000
+  style PHP_DEBUG fill:#ffb,color:#000
+  style HEARTBEAT fill:#dfd,color:#000
+  style FRONTEND_CHECK fill:#fdd,color:#000
 ```
 
 ## CSS & Visual Design System
@@ -462,10 +462,10 @@ flowchart TD
   Canvas --> Login["Login overlay\nz-index: 10\npointer-events: auto"]
   Login --> Footer["Footer bar\nz-index: 20\nversion + branding"]
 
-  style PALETTE fill:#ddf
-  style GLASS fill:#ffd
-  style ANIMATIONS fill:#dfd
-  style PLANET fill:#fdd
+  style PALETTE fill:#ddf,color:#000
+  style GLASS fill:#ffd,color:#000
+  style ANIMATIONS fill:#dfd,color:#000
+  style PLANET fill:#fdd,color:#000
 ```
 
 ## Complete Request-Response Lifecycle
@@ -556,9 +556,9 @@ flowchart TD
   NGINX --> NET
   PHP --> NET
 
-  style NGINX fill:#bfb
-  style PHP fill:#bbf
-  style NETWORK fill:#ffd
+  style NGINX fill:#bfb,color:#000
+  style PHP fill:#bbf,color:#000
+  style NETWORK fill:#ffd,color:#000
 ```
 
 ## File Mount Map — What Goes Where
@@ -607,7 +607,7 @@ flowchart LR
   H3 -->|:ro| P1
   H4 -->|:ro| P2
 
-  style HOST_FILES fill:#fdd
-  style NGINX_FS fill:#bfb
-  style PHP_FS fill:#bbf
+  style HOST_FILES fill:#fdd,color:#000
+  style NGINX_FS fill:#bfb,color:#000
+  style PHP_FS fill:#bbf,color:#000
 ```
