@@ -14,7 +14,7 @@
 
 ### Что это?
 
-<img width="2560" height="1250" alt="2026-04-13_16-12-57" src="https://github.com/user-attachments/assets/9ed3ea55-884c-4ba5-af3b-78577efeec93" />
+<img width="2560" height="1000" alt="2026-04-13_16-12-57" src="https://github.com/user-attachments/assets/9ed3ea55-884c-4ba5-af3b-78577efeec93" />
 
 ---
 
@@ -110,7 +110,7 @@ docker compose up -d
 
 Перед запуском замените `YOUDOMEN.XXX` в `docker-compose.yml` и `nginx.conf` на ваш домен и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
 
-<img width="2560" height="1250" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
+<img width="2560" height="1000" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
 
 ### 📖 Уроки и документация
 
