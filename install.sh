@@ -56,6 +56,7 @@ usage() {
       пусто/localhost  → HTTP, порт 80
       IP-адрес         → HTTPS, self-signed сертификат
       домен            → HTTPS, Let's Encrypt или self-signed
+      если 443 занят   → в интерактивном режиме можно выбрать свой HTTPS-порт
   -c  Путь к SSL-сертификату (полный путь к файлу)
   -k  Путь к SSL-ключу (полный путь к файлу)
   -y  Неинтерактивный режим (без вопросов, пропуск confirmations)
@@ -78,6 +79,7 @@ PROJECT_DIR="/opt/myfakesite"
 DOMAIN=""
 CUSTOM_CERT=""
 CUSTOM_KEY=""
+SSL_PORT="443"
 NON_INTERACTIVE=false
 
 while getopts ":r:b:p:d:c:k:yh" opt; do
@@ -307,7 +309,7 @@ if [[ -z "$PHASE_DIR" || ! -d "$PHASE_DIR" ]]; then
   die "Директория фаз установки не найдена."
 fi
 
-export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
+export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY SSL_PORT NON_INTERACTIVE
 
 # Phase 1: Prerequisites + git clone/pull
 # shellcheck source=/dev/null

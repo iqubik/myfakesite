@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # file: install/phase4-apply.sh v1.0
 # Phase 4: Apply config — replace domain, adapt for HTTP mode
-# Expects: DOMAIN, MODE, SSL_CERT_PATH, SSL_KEY_PATH, log/warn/die
+# Expects: DOMAIN, MODE, SSL_PORT, SSL_CERT_PATH, SSL_KEY_PATH, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 4: Настройка конфигурации"
@@ -14,6 +14,8 @@ log "Подставляем '${DOMAIN}' в файлы..."
 
 sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" docker-compose.yml
 sed -i "s/YOUDOMEN\.XXX/${DOMAIN}/g" data/nginx.conf
+sed -i "s/SSL_PORT_PLACEHOLDER/${SSL_PORT:-443}/g" data/nginx.conf
+sed -Ei "s|return 301 https://\\\$host(:[0-9]+)?\\\$request_uri;|return 301 https://\\\$host:${SSL_PORT:-443}\\\$request_uri;|g" data/nginx.conf
 
 log "Замена YOUDOMEN.XXX → ${DOMAIN} выполнена ✓"
 
@@ -214,7 +216,7 @@ HTTPCONF
   # Правим docker-compose.yml: убираем 443 и SSL-тома, монтируем nginx-http.conf
   log "Адаптируем docker-compose.yml для HTTP-режима..."
 
-  sed -i '/- "443:443"/d' docker-compose.yml
+  sed -Ei '/- "[0-9]+:443"/d' docker-compose.yml
   sed -i '/fullchain\.pem.*fakesite\.crt/d' docker-compose.yml
   sed -i '/privkey\.pem.*fakesite\.key/d' docker-compose.yml
   sed -i 's|./data/nginx\.conf:/etc/nginx/conf\.d/default\.conf:ro|./nginx-http.conf:/etc/nginx/conf.d/default.conf:ro|' docker-compose.yml
@@ -227,6 +229,13 @@ fi
 # HTTPS MODE: SSL paths in docker-compose.yml
 #################################
 log "HTTPS-режим: проверяем пути к SSL в docker-compose.yml..."
+
+# Приводим host HTTPS-порт к выбранному пользователем значению.
+if grep -qE -- '- "[0-9]+:443"' docker-compose.yml; then
+  sed -Ei "s|- \"[0-9]+:443\"|- \"${SSL_PORT:-443}:443\"|g" docker-compose.yml
+else
+  sed -i "/- \"80:80\"/a\      - \"${SSL_PORT:-443}:443\"" docker-compose.yml
+fi
 
 # В docker-compose.yml пути-заглушки вида:
 #   /etc/letsencrypt/live/YOUDOMEN.XXX/fullchain.pem

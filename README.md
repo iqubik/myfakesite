@@ -109,7 +109,7 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | 
 docker compose up -d
 ```
 
-Перед запуском замените `YOUDOMEN.XXX` в `docker-compose.yml` и `nginx.conf` на ваш домен и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
+Перед запуском замените `YOUDOMEN.XXX` и `SSL_PORT_PLACEHOLDER` в `docker-compose.yml`/`nginx.conf` на ваши значения и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
 
 ---
 
@@ -351,7 +351,7 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | 
 docker compose up -d
 ```
 
-Before running, replace `YOUDOMEN.XXX` in `docker-compose.yml` and `nginx.conf` with your actual domain and provide paths to SSL certificates (or comment out the SSL sections for HTTP-only mode).
+Before running, replace `YOUDOMEN.XXX` and `SSL_PORT_PLACEHOLDER` in `docker-compose.yml`/`nginx.conf` with your values and provide paths to SSL certificates (or comment out the SSL sections for HTTP-only mode).
 
 ### 📖 Tutorials & Documentation
 

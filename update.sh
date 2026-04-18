@@ -120,8 +120,10 @@ log "Обновление исходников из ${REPO_URL} (${BRANCH})..."
 
 # Сохраняем текущий домен ДО обновления (reset --hard может затереть)
 SAVED_DOMAIN=""
+SAVED_SSL_PORT=""
 if [[ -f "docker-compose.yml" ]]; then
   SAVED_DOMAIN=$(grep -oP '/etc/letsencrypt/live/\K[^/]+' docker-compose.yml 2>/dev/null | head -n1 || true)
+  SAVED_SSL_PORT=$(grep -oP '"\K[0-9]+(?=:443")' docker-compose.yml 2>/dev/null | head -n1 || true)
   if [[ -z "$SAVED_DOMAIN" ]]; then
     # Проверяем HTTP-режим
     if grep -q 'nginx-http\.conf' docker-compose.yml 2>/dev/null; then
@@ -168,6 +170,7 @@ if [[ -n "$SAVED_DOMAIN" && "$SAVED_DOMAIN" != "localhost" ]]; then
 
   DOMAIN="$SAVED_DOMAIN"
   MODE="https"
+  SSL_PORT="${SAVED_SSL_PORT:-443}"
 
   # VERIFY: SSL-пути в docker-compose.yml
   if grep -q "letsencrypt/live/${DOMAIN}" docker-compose.yml 2>/dev/null; then
@@ -178,14 +181,16 @@ if [[ -n "$SAVED_DOMAIN" && "$SAVED_DOMAIN" != "localhost" ]]; then
 elif [[ -n "$SAVED_DOMAIN" ]]; then
   DOMAIN="localhost"
   MODE="http"
+  SSL_PORT="443"
   log "Режим: HTTP"
 else
   warn "Не удалось определить предыдущий домен. Запустите install.sh -d <domain>."
   DOMAIN="localhost"
   MODE="http"
+  SSL_PORT="443"
 fi
 
-export DOMAIN MODE SSL_CERT_PATH="" SSL_KEY_PATH=""
+export DOMAIN MODE SSL_PORT SSL_CERT_PATH="" SSL_KEY_PATH=""
 
 # Для HTTP-режима обязательно пере-применяем Phase 4 логику:
 # - генерируем nginx-http.conf
@@ -197,6 +202,15 @@ if [[ "$MODE" == "http" ]]; then
     source "install/phase4-apply.sh"
   else
     die "Не найден install/phase4-apply.sh — не могу применить HTTP-конфигурацию"
+  fi
+else
+  # HTTPS-режим: восстанавливаем выбранный пользователем host-порт SSL.
+  sed -i "s/SSL_PORT_PLACEHOLDER/${SSL_PORT:-443}/g" data/nginx.conf 2>/dev/null || true
+  sed -Ei "s|return 301 https://\\\$host(:[0-9]+)?\\\$request_uri;|return 301 https://\\\$host:${SSL_PORT:-443}\\\$request_uri;|g" data/nginx.conf 2>/dev/null || true
+  if grep -qE -- '- "[0-9]+:443"' docker-compose.yml 2>/dev/null; then
+    sed -Ei "s|- \"[0-9]+:443\"|- \"${SSL_PORT:-443}:443\"|g" docker-compose.yml
+  else
+    sed -i "/- \"80:80\"/a\      - \"${SSL_PORT:-443}:443\"" docker-compose.yml
   fi
 fi
 
@@ -314,17 +328,18 @@ fi
 log "Проверяем доступность сайта..."
 
 HTTPS_MODE=0
-if grep -q "listen 443 ssl" data/nginx.conf 2>/dev/null && grep -q '"443:443"' docker-compose.yml 2>/dev/null; then
+HTTPS_HOST_PORT=$(grep -oP '"\K[0-9]+(?=:443")' docker-compose.yml 2>/dev/null | head -n1 || true)
+if grep -q "listen 443 ssl" data/nginx.conf 2>/dev/null && [[ -n "$HTTPS_HOST_PORT" ]]; then
   HTTPS_MODE=1
 fi
 
 if [[ $HTTPS_MODE -eq 1 ]]; then
-  code=$(curl -fsSk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo "000")
+  code=$(curl -fsSk -o /dev/null -w "%{http_code}" "https://localhost:${HTTPS_HOST_PORT}/" 2>/dev/null || echo "000")
   if [[ "$code" =~ ^(200|301|302)$ ]]; then
     log "Сайт доступен (HTTPS) ✓"
 
     # Проверяем версию в /api/status
-    api_ver=$(curl -fsSk https://localhost/api/status 2>/dev/null | grep -oP '"version"\s*:\s*"\K[^"]+' || true)
+    api_ver=$(curl -fsSk "https://localhost:${HTTPS_HOST_PORT}/api/status" 2>/dev/null | grep -oP '"version"\s*:\s*"\K[^"]+' || true)
     if [[ -n "$api_ver" ]]; then
       if [[ "$api_ver" == "$APP_VERSION" ]]; then
         log "Версия в API подтверждена: $api_ver ✓"
@@ -333,7 +348,7 @@ if [[ $HTTPS_MODE -eq 1 ]]; then
       fi
     fi
   else
-    warn "Сайт не отвечает на https://localhost/ (код $code)"
+    warn "Сайт не отвечает на https://localhost:${HTTPS_HOST_PORT}/ (код $code)"
   fi
 else
   code=$(curl -fsS -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "000")

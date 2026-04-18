@@ -118,7 +118,7 @@ flowchart TD
 
   PortBusy -->|Нет| UFWCheck
 
-  UFWCheck{"UFW установлен\nИ активен (ufw status)?"} -->|Да| UFWOpen["ufw allow 80/tcp\nufw allow 443/tcp"]
+  UFWCheck{"UFW установлен\nИ активен (ufw status)?"} -->|Да| UFWOpen["ufw allow 80/tcp\nufw allow SSL_PORT/tcp"]
   UFWCheck -->|Нет| Done2["Пропуск UFW"]
 
   UFWOpen --> Done2
@@ -182,14 +182,15 @@ flowchart TD
 
   subgraph HTTP_PATH [HTTP-режим]
     H1["Создание nginx-http.conf\n(без listen 443, без ssl,\nбез редиректа 80→443)"]
-    H2["docker-compose.yml:\nубрать порт 443:443\nубрать SSL volumes\nзаменить volume на nginx-http.conf"]
+    H2["docker-compose.yml:\nубрать порт *:443\nубрать SSL volumes\nзаменить volume на nginx-http.conf"]
     H3["sed YOUDOMEN.XXX → DOMAIN\nв nginx-http.conf"]
     H1 --> H2 --> H3
   end
 
   subgraph HTTPS_PATH [HTTPS-режим]
     S1["docker-compose.yml:\nобновить пути ssl_certificate\nssl_certificate_key\nна /etc/letsencrypt/live/DOMAIN/"]
-    S1
+    S2["docker-compose.yml:\nпривести mapping\nSSL_PORT:443"]
+    S1 --> S2
   end
 
   HTTPMode --> HTTP_PATH
