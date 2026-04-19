@@ -71,18 +71,18 @@
 
 ```
 # Интерактивный режим (скрипт задаст вопросы)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash
 ```
 
 ```bash
 # HTTP-режим, localhost (молча, без вопросов)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
 
 # С доменом и HTTPS (Let's Encrypt, молча)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
 
 # С self-signed сертификатом (по IP, молча)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
 
 ```
 
@@ -94,11 +94,11 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh |
 
 ```bash
 # Обновить до последней версии
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -y
 ```
 ```bash
 # Обновить до конкретной ветки/репозитория
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b main -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
 ```
 
 > Обновление находит проект в `/opt/myfakesite` (или укажите `-p /путь`). Работает из любой директории.
@@ -161,7 +161,7 @@ sudo ./install.sh \
 sudo ./update.sh
 
 # Обновить до конкретной ветки/репозитория
-sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b main
+sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip
 
 # Обновить из своего форка
 sudo ./update.sh \
@@ -195,7 +195,7 @@ sudo ./delete.sh -p /opt/myfakesite -f
 
 ```bash
 # Без подтверждения (force)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | sudo bash -s -- -f
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
 ```
 
 **Что делает `delete.sh`:**
@@ -317,16 +317,16 @@ The concept is simple: you want to build a polished single-page application with
 
 ```bash
 # HTTP mode, localhost (silent, no prompts)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
 
 # With domain and HTTPS (Let's Encrypt, silent)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d fakesite.example.com -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
 
 # With self-signed certificate (by IP, silent)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
 
 # Interactive mode (script will ask questions)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash
 ```
 
 The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail with an error. Without `-y`, the script will offer options.
@@ -337,10 +337,10 @@ The `-y` flag — fully automated installation without any prompts. If ports 80/
 
 ```bash
 # Update to latest version
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -y
 
 # Update to a specific branch/repo
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b main -y
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
 ```
 
 > Update finds the project in `/opt/myfakesite` (or specify `-p /path`). Works from any directory.
@@ -401,7 +401,7 @@ sudo ./install.sh \
 sudo ./update.sh
 
 # Update to a specific branch/repo
-sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b main
+sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip
 
 # Update from your fork
 sudo ./update.sh \
@@ -435,7 +435,7 @@ sudo ./delete.sh -p /opt/myfakesite -f
 
 ```bash
 # Without confirmation (force)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/main/delete.sh | sudo bash -s -- -f
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
 ```
 
 **What `delete.sh` does:**
