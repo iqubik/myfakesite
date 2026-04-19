@@ -141,7 +141,7 @@ sudo ./install.sh -d fakesite.example.com
 # Полная команда: свой репозиторий, ветка, домен, папка
 sudo ./install.sh \
   -r https://github.com/me/myfakesite.git \
-  -b my-branch \
+  -b test-ssl-custom-ip \
   -d demo.example.com \
   -p /opt/myfakesite
 ```
@@ -381,7 +381,7 @@ sudo ./install.sh -d fakesite.example.com
 # Full command: custom repo, branch, domain, path
 sudo ./install.sh \
   -r https://github.com/me/myfakesite.git \
-  -b my-branch \
+  -b test-ssl-custom-ip \
   -d demo.example.com \
   -p /opt/myfakesite
 ```
