@@ -86,7 +86,7 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 
 ```
 
-Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся с ошибкой. Без `-y` скрипт предложит варианты действий.
+Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся и предложит замену для 443 порта. Без `-y` скрипт предложит варианты действий.
 
 > **Требования:** Linux-сервер с `curl`. Скрипт сам установит Docker, Docker Compose и настроит всё остальное. Запускается от **root**.
 
@@ -329,7 +329,7 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash
 ```
 
-The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail with an error. Without `-y`, the script will offer options.
+The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail and you make chouse you custom port. Without `-y`, the script will offer options.
 
 > **Requirements:** Linux server with `curl`. The script installs Docker, Docker Compose and everything else automatically. Runs as **root**.
 
