@@ -43,26 +43,6 @@
 - **Портфолио.** Показываете: вот как выглядит сайт, вот как он себя ведёт, вот какие заголовки безопасности.
 - **Обучение.** Каждая секция `nginx.conf` — это мини-урок: rate limiting, mock JSON, SPA-роутинг, SSL-терминация.
 
-### Структура
-
-```
-├── docker-compose.yml   # Nginx + PHP-FPM, лимиты ресурсов
-├── install.sh           # Скрипт установки
-├── update.sh            # Скрипт обновления
-├── delete.sh            # Скрипт удаления
-├── data/
-│   ├── nginx.conf       # Mock API, security headers, rate limiting
-│   ├── index.html       # SPA: Three.js 3D-фон + форма логина
-│   ├── status.php       # PHP health check (дубль /api/status)
-│   ├── phpinfo.php      # Отладка PHP
-│   ├── favicon.ico      # Иконка сайта
-│   ├── apple-touch-icon.png
-│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
-└── install/
-    ├── phase*.sh        # Фазы установки
-    └── certbot-renew-hook.sh  # Хук обновления сертификатов
-```
-
 ### Запуск
 
 #### ⚡ Быстрая установка (одной командой)
@@ -205,6 +185,26 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 
 > **Важно:** `delete.sh` удаляет только cron ротации логов (`myfakesite-log-rotate`) и логи `/var/log/myfakesite`. Скрипт **не трогает** `/etc/letsencrypt/` и `certbot`-cron (`certbot-fakesite`) — сертификаты и автообновление остаются на сервере.
 
+### Структура
+
+```
+├── docker-compose.yml   # Nginx + PHP-FPM, лимиты ресурсов
+├── install.sh           # Скрипт установки
+├── update.sh            # Скрипт обновления
+├── delete.sh            # Скрипт удаления
+├── data/
+│   ├── nginx.conf       # Mock API, security headers, rate limiting
+│   ├── index.html       # SPA: Three.js 3D-фон + форма логина
+│   ├── status.php       # PHP health check (дубль /api/status)
+│   ├── phpinfo.php      # Отладка PHP
+│   ├── favicon.ico      # Иконка сайта
+│   ├── apple-touch-icon.png
+│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
+└── install/
+    ├── phase*.sh        # Фазы установки
+    └── certbot-renew-hook.sh  # Хук обновления сертификатов
+```
+
 #### 🔐 Интеграция с fail2ban
 
 Проект пишет попытки логина в файл:
@@ -288,26 +288,6 @@ The concept is simple: you want to build a polished single-page application with
 - **Frontend debugging.** No backend needed — mock the responses, test the UI/UX.
 - **Portfolio.** Show how the site looks, how it behaves, what security headers are in place.
 - **Education.** Every section of `nginx.conf` is a mini-lesson: rate limiting, mock JSON, SPA routing, SSL termination.
-
-### Structure
-
-```
-├── docker-compose.yml   # Nginx + PHP-FPM, resource limits
-├── install.sh           # Installation script
-├── update.sh            # Update script
-├── delete.sh            # Uninstall script
-├── data/
-│   ├── nginx.conf       # Mock API, security headers, rate limiting
-│   ├── index.html       # SPA: Three.js 3D background + login form
-│   ├── status.php       # PHP health check (mirror of /api/status)
-│   ├── phpinfo.php      # PHP debugging
-│   ├── favicon.ico      # Site icon
-│   ├── apple-touch-icon.png
-│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
-└── install/
-    ├── phase*.sh        # Installation phases
-    └── certbot-renew-hook.sh  # Certificate renewal hook
-```
 
 ### Running
 
@@ -444,6 +424,26 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 - `rm -rf` project directory
 
 > **Important:** `delete.sh` removes only log-rotation cron (`myfakesite-log-rotate`) and `/var/log/myfakesite`. It does **not** touch `/etc/letsencrypt/` or certbot cron (`certbot-fakesite`) — certificates and auto-renewal remain on the server.
+
+### Structure
+
+```
+├── docker-compose.yml   # Nginx + PHP-FPM, resource limits
+├── install.sh           # Installation script
+├── update.sh            # Update script
+├── delete.sh            # Uninstall script
+├── data/
+│   ├── nginx.conf       # Mock API, security headers, rate limiting
+│   ├── index.html       # SPA: Three.js 3D background + login form
+│   ├── status.php       # PHP health check (mirror of /api/status)
+│   ├── phpinfo.php      # PHP debugging
+│   ├── favicon.ico      # Site icon
+│   ├── apple-touch-icon.png
+│   └── robots.txt       # SEO: Disallow /api/, /admin/, /internal/
+└── install/
+    ├── phase*.sh        # Installation phases
+    └── certbot-renew-hook.sh  # Certificate renewal hook
+```
 
 #### 🔐 fail2ban Integration
 
