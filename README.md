@@ -22,7 +22,8 @@
 
 Идея проста: вам нужно сделать красивый одностраничный сайт с формой входа, 3D-анимацией и API-эндпоинтами, но **реальный сервер пока не готов**. Вместо того чтобы ждать, вы настраиваете Nginx так, чтобы он возвращал заранее заготовленные JSON-ответы. Фронтенд работает как с настоящим API — отправляет запросы, получает ответы, обрабатывает ошибки.
 
-### Чему учит этот проект
+<details>
+  <summary>Чему учит этот проект?</summary>
 
 1. **Mock API на уровне Nginx** — `return 200`, `return 401`, `return 429` вместо `proxy_pass`. Все эндпоинты (`/api/status`, `/api/auth`, `/api/files`, `/api/settings`) отвечают заглушками, но фронтенд этого «не знает» и работает штатно.
 
@@ -35,6 +36,7 @@
 5. **Docker Compose** — минимальная инфраструктура: Nginx + PHP-FPM, каждый с ограничениями по CPU и памяти.
 
 6. **3D-графика в браузере** — Three.js (r128), GLSL-шейдеры, градиентные текстуры, освещение — всё на клиенте, без серверной части.
+</details>
 
 ### Зачем это нужно
 
@@ -47,26 +49,10 @@
 
 #### ⚡ Быстрая установка (одной командой)
 
-> Это **опциональный** способ. Если предпочитаете ручной запуск — просто `git clone` и `docker compose up -d` (см. ниже).
-
 ```
 # Интерактивный режим (скрипт задаст вопросы)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash
 ```
-
-```bash
-# HTTP-режим, localhost (молча, без вопросов)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
-
-# С доменом и HTTPS (Let's Encrypt, молча)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
-
-# С self-signed сертификатом (по IP, молча)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
-
-```
-
-Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся и предложит замену для 443 порта. Без `-y` скрипт предложит варианты действий.
 
 > **Требования:** Linux-сервер с `curl`. Скрипт сам установит Docker, Docker Compose и настроит всё остальное. Запускается от **root**.
 
@@ -76,14 +62,24 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 # Обновить до последней версии
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -y
 ```
-```bash
-# Обновить до конкретной ветки/репозитория
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
-```
 
 > Обновление находит проект в `/opt/myfakesite` (или укажите `-p /путь`). Работает из любой директории.
 
-#### Ручная установка
+#### ⚡ Удаление (одной командой)
+
+```bash
+# Без подтверждения (force)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
+```
+
+> **Важно:** `delete.sh` удаляет только cron ротации логов (`myfakesite-log-rotate`) и логи `/var/log/myfakesite`. Скрипт **не трогает** `/etc/letsencrypt/` и `certbot`-cron (`certbot-fakesite`) — сертификаты и автообновление остаются на сервере.
+
+---
+
+<details>
+  <summary>Ручная установка: подробности и расширенные команды</summary>
+
+> Это **опциональный** способ. Если предпочитаете ручной запуск — просто `git clone` и `docker compose up -d`.
 
 ```bash
 docker compose up -d
@@ -92,18 +88,6 @@ docker compose up -d
 Перед запуском замените `YOUDOMEN.XXX` и `SSL_PORT_PLACEHOLDER` в `docker-compose.yml`/`nginx.conf` на ваши значения и укажите пути к SSL-сертификатам (или закомментируйте SSL-секции для HTTP-режима).
 
 ---
-
-### 📖 Уроки и документация
-
-Полный подробный разбор — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
-
-Там вы найдёте:
-- Детальный разбор каждой строки `nginx.conf`, `docker-compose.yml` и `index.html`
-- Объяснение Mock API, rate limiting, security headers
-- 3D-графику: Three.js, GLSL-шейдеры, анимация вершин
-- Практические упражнения с решениями
-- Контрольные вопросы для самопроверки
-- Шпаргалку по mock API-паттернам
 
 ### 🛠 Установка, обновление, удаление
 
@@ -134,6 +118,20 @@ sudo ./install.sh \
 - При домене и Let's Encrypt — устанавливает certbot, получает сертификат, настраивает **авто-обновление** (cron ежедневно в 3:00)
 - Запускает контейнеры через Docker Compose
 
+```bash
+# HTTP-режим, localhost (молча, без вопросов)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
+
+# С доменом и HTTPS (Let's Encrypt, молча)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
+
+# С self-signed сертификатом (по IP, молча)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+
+```
+
+Флаг `-y` — полностью автоматическая установка без вопросов. Если порты 80/443 заняты — установка прервётся и предложит замену для 443 порта. Без `-y` скрипт предложит варианты действий.
+
 #### Обновление
 
 ```bash
@@ -147,6 +145,11 @@ sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-
 sudo ./update.sh \
   -r https://github.com/me/myfakesite.git \
   -b feature-branch
+```
+
+```bash
+# Обновить до конкретной ветки/репозитория
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
 ```
 
 **Что делает `update.sh`:**
@@ -171,13 +174,6 @@ sudo ./delete.sh -f
 sudo ./delete.sh -p /opt/myfakesite -f
 ```
 
-#### ⚡ Удаление (одной командой)
-
-```bash
-# Без подтверждения (force)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
-```
-
 **Что делает `delete.sh`:**
 - `docker compose down --volumes --remove-orphans`
 - Удаляет Docker-образы проекта
@@ -194,7 +190,7 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
 ├── delete.sh            # Скрипт удаления
 ├── data/
 │   ├── nginx.conf       # Mock API, security headers, rate limiting
-│   ├── index.html       # SPA: Three.js 3D-фон + форма логина
+│   ├── index.html       # SPA: налог Three.js 3D-фон + форма логина
 │   ├── status.php       # PHP health check (дубль /api/status)
 │   ├── phpinfo.php      # Отладка PHP
 │   ├── favicon.ico      # Иконка сайта
@@ -204,6 +200,21 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
     ├── phase*.sh        # Фазы установки
     └── certbot-renew-hook.sh  # Хук обновления сертификатов
 ```
+
+#### Параметры скриптов
+
+| Параметр | Скрипты | Описание |
+|----------|---------|----------|
+| `-r <url>` | install, update | Git URL репозитория |
+| `-b <branch>` | install, update | Ветка |
+| `-p <path>` | все | Папка проекта (по умолчанию `/opt/myfakesite`) |
+| `-d <domain>` | install | Домен для nginx (пустой = localhost, HTTP) |
+| `-c <path>` | install | Путь к кастомному SSL-сертификату |
+| `-k <path>` | install | Путь к кастомному SSL-ключу |
+| `-f` | delete | Без подтверждения |
+| `-h` | все | Показать справку
+
+</details>
 
 #### 🔐 Интеграция с fail2ban
 
@@ -242,19 +253,17 @@ sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfake
 sudo systemctl restart fail2ban
 sudo fail2ban-client status myfakesite-auth
 ```
+### 📖 Уроки и документация
 
-#### Параметры скриптов
+Полный подробный разбор — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
 
-| Параметр | Скрипты | Описание |
-|----------|---------|----------|
-| `-r <url>` | install, update | Git URL репозитория |
-| `-b <branch>` | install, update | Ветка |
-| `-p <path>` | все | Папка проекта (по умолчанию `/opt/myfakesite`) |
-| `-d <domain>` | install | Домен для nginx (пустой = localhost, HTTP) |
-| `-c <path>` | install | Путь к кастомному SSL-сертификату |
-| `-k <path>` | install | Путь к кастомному SSL-ключу |
-| `-f` | delete | Без подтверждения |
-| `-h` | все | Показать справку
+Там вы найдёте:
+- Детальный разбор каждой строки `nginx.conf`, `docker-compose.yml` и `index.html`
+- Объяснение Mock API, rate limiting, security headers
+- 3D-графику: Three.js, GLSL-шейдеры, анимация вершин
+- Практические упражнения с решениями
+- Контрольные вопросы для самопроверки
+- Шпаргалку по mock API-паттернам
 
 <img width="2560" height="1000" alt="image" src="https://github.com/user-attachments/assets/3fc134e5-6759-4160-9c37-3ec1ca21f19f" />
 
@@ -268,7 +277,8 @@ An educational project demonstrating the **Mock API** approach — a technique w
 
 The concept is simple: you want to build a polished single-page application with a login form, 3D animations, and API endpoints, but **the real backend isn't ready yet**. Instead of waiting, you configure Nginx to return pre-canned JSON responses. The frontend works exactly as it would with a real API — sending requests, receiving responses, handling errors.
 
-### What this project teaches
+<details>
+  <summary>What this project teaches?</summary>
 
 1. **Mock API at the Nginx level** — `return 200`, `return 401`, `return 429` instead of `proxy_pass`. All endpoints (`/api/status`, `/api/auth`, `/api/files`, `/api/settings`) respond with stubs, but the frontend "doesn't know" and operates normally.
 
@@ -281,6 +291,7 @@ The concept is simple: you want to build a polished single-page application with
 5. **Docker Compose** — minimal infrastructure: Nginx + PHP-FPM, each with CPU and memory limits.
 
 6. **3D graphics in the browser** — Three.js (r128), GLSL shaders, gradient textures, lighting — all client-side, no server involvement.
+</details>
 
 ### Why this matters
 
@@ -332,18 +343,6 @@ docker compose up -d
 ```
 
 Before running, replace `YOUDOMEN.XXX` and `SSL_PORT_PLACEHOLDER` in `docker-compose.yml`/`nginx.conf` with your values and provide paths to SSL certificates (or comment out the SSL sections for HTTP-only mode).
-
-### 📖 Tutorials & Documentation
-
-Full detailed walkthrough — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
-
-Inside you'll find:
-- Line-by-line breakdown of `nginx.conf`, `docker-compose.yml` and `index.html`
-- Mock API, rate limiting, security headers explained
-- 3D graphics: Three.js, GLSL shaders, vertex animation
-- Hands-on exercises with solutions
-- Self-check questions
-- Mock API patterns cheat sheet
 
 ### 🛠 Installation, Update, Uninstallation
 
@@ -495,6 +494,18 @@ sudo fail2ban-client status myfakesite-auth
 | `-k <path>` | install | Path to custom SSL key |
 | `-f` | delete | Force mode (no confirmation) |
 | `-h` | all | Show help
+
+### 📖 Tutorials & Documentation
+
+Full detailed walkthrough — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
+
+Inside you'll find:
+- Line-by-line breakdown of `nginx.conf`, `docker-compose.yml` and `index.html`
+- Mock API, rate limiting, security headers explained
+- 3D graphics: Three.js, GLSL shaders, vertex animation
+- Hands-on exercises with solutions
+- Self-check questions
+- Mock API patterns cheat sheet
 
 ---
 
