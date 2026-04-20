@@ -135,7 +135,12 @@ fi
 git remote set-url origin "$REPO_URL" 2>/dev/null || true
 git fetch origin "$BRANCH"
 
-if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+# Принудительно сбрасываем локальные изменения (от sed),
+# чтобы git checkout не блокировал работу.
+git reset --hard HEAD >/dev/null 2>&1 || true
+
+if git show-ref --verify --quiet "refs/heads/$BRANCH";
+then
   git checkout "$BRANCH"
   git merge --ff-only FETCH_HEAD || {
     warn "Не удалось fast-forward merge."
