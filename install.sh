@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# file: install.sh v1.1.6
+# file: install.sh v1.1.7
 set -euo pipefail
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
@@ -50,12 +50,13 @@ usage() {
 
 Параметры:
   -r  Git URL репозитория (по умолчанию: https://github.com/iqubik/myfakesite.git)
-  -b  Ветка (по умолчанию: main)
+  -b  Ветка (по умолчанию: test-ssl-custom-ip)
   -p  Папка установки (по умолчанию: /opt/myfakesite)
   -d  Домен или IP-адрес для nginx
       пусто/localhost  → HTTP, порт 80
       IP-адрес         → HTTPS, self-signed сертификат
       домен            → HTTPS, Let's Encrypt или self-signed
+      если 443 занят   → в интерактивном режиме можно выбрать свой HTTPS-порт
   -c  Путь к SSL-сертификату (полный путь к файлу)
   -k  Путь к SSL-ключу (полный путь к файлу)
   -y  Неинтерактивный режим (без вопросов, пропуск confirmations)
@@ -73,11 +74,12 @@ EOF
 
 # ─── Defaults ──────────────────────────────────────────────
 REPO_URL="https://github.com/iqubik/myfakesite.git"
-BRANCH="main"
+BRANCH="test-ssl-custom-ip"
 PROJECT_DIR="/opt/myfakesite"
 DOMAIN=""
 CUSTOM_CERT=""
 CUSTOM_KEY=""
+SSL_PORT="443"
 NON_INTERACTIVE=false
 
 while getopts ":r:b:p:d:c:k:yh" opt; do
@@ -99,7 +101,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1.6"
+echo "[INFO] Версия скрипта: 1.1.7"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────
@@ -307,7 +309,7 @@ if [[ -z "$PHASE_DIR" || ! -d "$PHASE_DIR" ]]; then
   die "Директория фаз установки не найдена."
 fi
 
-export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY NON_INTERACTIVE
+export PHASE_DIR REPO_URL BRANCH PROJECT_DIR DOMAIN CUSTOM_CERT CUSTOM_KEY SSL_PORT NON_INTERACTIVE
 
 # Phase 1: Prerequisites + git clone/pull
 # shellcheck source=/dev/null

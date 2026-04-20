@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # file: install/phase2-domain.sh v1.1
 # Phase 2: Domain/IP detection, port checks, UFW
-# Sets: MODE, DOMAIN
-# Expects: DOMAIN, PROJECT_DIR, NON_INTERACTIVE, log/warn/die
+# Sets: MODE, DOMAIN, SSL_PORT
+# Expects: DOMAIN, SSL_PORT, PROJECT_DIR, NON_INTERACTIVE, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 2: Домен, порты, фаервол"
@@ -12,9 +12,44 @@ is_ip_address() {
   [[ "$1" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
 }
 
+is_valid_port() {
+  [[ "$1" =~ ^[0-9]+$ ]] && (( "$1" >= 1 && "$1" <= 65535 ))
+}
+
+choose_custom_ssl_port() {
+  while true; do
+    echo ""
+    read -r -p "Введите HTTPS-порт для публикации [8443]: " custom_port
+    custom_port="${custom_port:-8443}"
+
+    if ! is_valid_port "$custom_port"; then
+      warn "Некорректный порт: $custom_port (ожидается 1..65535)"
+      continue
+    fi
+
+    if [[ "$custom_port" == "80" ]]; then
+      warn "Порт 80 уже используется HTTP-сервисом. Выберите другой."
+      continue
+    fi
+
+    pcustom=$(check_port "$custom_port") || true
+    if [[ -n "$pcustom" ]]; then
+      IFS=':' read -r pcustom_pid pcustom_name <<< "$pcustom"
+      warn "Порт ${custom_port} занят: ${pcustom_name} (PID ${pcustom_pid})"
+      continue
+    fi
+
+    SSL_PORT="$custom_port"
+    log "HTTPS будет опубликован на порту ${SSL_PORT}"
+    return 0
+  done
+}
+
 #################################
 # DOMAIN / IP DETECTION
 #################################
+SSL_PORT="${SSL_PORT:-443}"
+
 if [[ -z "$DOMAIN" ]]; then
   if [[ "$NON_INTERACTIVE" == "true" ]]; then
     log "Неинтерактивный режим: DOMAIN не указан — HTTP, localhost"
@@ -61,14 +96,14 @@ else
   fi
 fi
 
-export MODE
+export MODE SSL_PORT
 
 if [[ "$MODE" == "http" ]]; then
   log "Режим: HTTP, порт 80 (localhost)"
 elif [[ "$MODE" == "https-selfsigned" ]]; then
-  log "Режим: HTTPS, self-signed сертификат для IP $DOMAIN"
+  log "Режим: HTTPS:${SSL_PORT}, self-signed сертификат для IP $DOMAIN"
 else
-  log "Режим: HTTPS для домена $DOMAIN"
+  log "Режим: HTTPS:${SSL_PORT} для домена $DOMAIN"
 fi
 
 #################################
@@ -128,6 +163,7 @@ if [[ "$MODE" != "http" ]]; then
     echo "  1) Остановить ${p443_name} и продолжить"
     echo "  2) Переключиться на HTTP-режим (без SSL)"
     echo "  3) Продолжить так (контейнеры могут не запуститься)"
+    echo "  4) Указать свой HTTPS-порт (например 8443)"
     echo ""
     read -r -p "Выбор [1]: " ch
     case "$ch" in
@@ -135,10 +171,13 @@ if [[ "$MODE" != "http" ]]; then
         log "Переключаемся на HTTP-режим..."
         MODE="http"
         DOMAIN="localhost"
-        export MODE
+        export MODE SSL_PORT
         ;;
       3)
         warn "Продолжаем с занятым портом 443."
+        ;;
+      4)
+        choose_custom_ssl_port
         ;;
       *)
         log "Останавливаем ${p443_name} (PID ${p443_pid})..."
@@ -156,6 +195,37 @@ if [[ "$MODE" != "http" ]]; then
     esac
   else
     log "Порт 443 свободен ✓"
+    if [[ "$NON_INTERACTIVE" != "true" ]]; then
+      echo ""
+      echo "  MySphere может использовать порт 443 или другой порт."
+      echo "  1) Использовать порт 443 (по умолчанию)"
+      echo "  2) Указать свой HTTPS-порт (например 8443)"
+      echo ""
+      read -r -p "Выбор [1]: " ch
+      case "$ch" in
+        2)
+          choose_custom_ssl_port
+          ;;
+        *)
+          log "Используем порт 443."
+          SSL_PORT=443
+          ;;
+      esac
+    fi
+  fi
+fi
+
+export MODE SSL_PORT
+
+if [[ "$MODE" != "http" && "${SSL_PORT}" != "443" ]]; then
+  pssl=$(check_port "$SSL_PORT") || true
+  if [[ -n "$pssl" ]]; then
+    IFS=':' read -r pssl_pid pssl_name <<< "$pssl"
+    warn "Выбранный HTTPS-порт ${SSL_PORT} занят: ${pssl_name} (PID ${pssl_pid})"
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+      die "Порт ${SSL_PORT} занят. Освободите порт и повторите установку."
+    fi
+    choose_custom_ssl_port
   fi
 fi
 
@@ -189,11 +259,13 @@ configure_ufw() {
   fi
 
   if [[ "$MODE" != "http" ]]; then
-    if ! echo "$rules" | grep -qE "443(/tcp)?\s+ALLOW"; then
-      log "Открываем порт 443 в UFW..."
-      ufw allow 443/tcp
+    local ssl_port
+    ssl_port="${SSL_PORT:-443}"
+    if ! echo "$rules" | grep -qE "${ssl_port}(/tcp)?\s+ALLOW"; then
+      log "Открываем порт ${ssl_port} в UFW..."
+      ufw allow "${ssl_port}/tcp"
     else
-      log "Порт 443 уже открыт"
+      log "Порт ${ssl_port} уже открыт"
     fi
   fi
 }

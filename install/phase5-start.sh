@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # file: install/phase5-start.sh v1.1
 # Phase 5: Start containers, verify, summary
-# Expects: MODE, DOMAIN, COMPOSE_CMD, NON_INTERACTIVE, log/warn/die
+# Expects: MODE, DOMAIN, SSL_PORT, COMPOSE_CMD, NON_INTERACTIVE, log/warn/die
 
 log "═══════════════════════════════════════════"
 log "  Фаза 5: Запуск и проверка"
@@ -46,9 +46,9 @@ if [[ "$MODE" == "http" ]]; then
     warn "Посмотрите логи: ${COMPOSE_CMD[*]} logs"
   fi
 else
-  code=$(curl -fsSk -o /dev/null -w "%{http_code}" https://localhost/ 2>/dev/null || echo "000")
+  code=$(curl -fsSk -o /dev/null -w "%{http_code}" "https://localhost:${SSL_PORT:-443}/" 2>/dev/null || echo "000")
   if [[ "$code" =~ ^(200|301|302)$ ]]; then
-    log "Сайт доступен: https://${DOMAIN} (код $code) ✓"
+    log "Сайт доступен: https://${DOMAIN}:${SSL_PORT:-443} (код $code) ✓"
   else
     warn "Сайт не отвечает (код $code)"
     warn "Посмотрите логи: ${COMPOSE_CMD[*]} logs"
@@ -124,8 +124,8 @@ if [[ "$MODE" == "http" ]]; then
   log "    sudo ./install.sh -d <domain>"
 else
   log "  Режим:       HTTPS"
-  log "  URL:         https://${DOMAIN}"
-  log "  Порт:        443"
+  log "  URL:         https://${DOMAIN}:${SSL_PORT:-443}"
+  log "  Порт:        ${SSL_PORT:-443}"
 
   if [[ "${SSL_MODE:-}" == "selfsigned" ]]; then
     echo ""
