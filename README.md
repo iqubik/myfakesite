@@ -216,7 +216,8 @@ sudo ./delete.sh -p /opt/myfakesite -f
 
 </details>
 
-#### 🔐 Интеграция с fail2ban
+<details>
+  <summary>Интеграция с fail2ban</summary>
 
 Проект пишет попытки логина в файл:
 
@@ -253,6 +254,8 @@ sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfake
 sudo systemctl restart fail2ban
 sudo fail2ban-client status myfakesite-auth
 ```
+</details>
+
 ### 📖 Уроки и документация
 
 Полный подробный разбор — **[TUTORIAL.md →](docs/TUTORIAL.md)**.
@@ -471,7 +474,8 @@ sudo ./delete.sh -p /opt/myfakesite -f
 
 </details>
 
-#### 🔐 fail2ban Integration
+<details>
+  <summary>Fail2ban Integration manual</summary>
 
 The project writes login attempts to:
 
@@ -508,6 +512,7 @@ sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfake
 sudo systemctl restart fail2ban
 sudo fail2ban-client status myfakesite-auth
 ```
+</details>
 
 ### 📖 Tutorials & Documentation
 
