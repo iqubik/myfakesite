@@ -157,33 +157,16 @@
 
         .logo-card {
             width: 100%;
-            /* Ribbed dark tinted crystal glass */
-            background:
-                repeating-linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.015) 0px,
-                    rgba(255, 255, 255, 0.03) 1px,
-                    transparent 1px,
-                    transparent 4px
-                ),
-                repeating-linear-gradient(
-                    -135deg,
-                    rgba(255, 255, 255, 0.01) 0px,
-                    rgba(255, 255, 255, 0.02) 1px,
-                    transparent 1px,
-                    transparent 6px
-                ),
-                rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
-            -webkit-backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 0.5rem;
+            /* Apple-style deep tinted glass */
+            background: rgba(15, 15, 20, 0.4);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.25rem;
             box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.8),
-                0 2px 8px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-            filter: url(#ribbed-glass);
+                0 16px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
             padding: 1rem 2rem;
             display: flex;
             align-items: center;
@@ -214,33 +197,15 @@
         }
 
         .form-card {
-            /* Ribbed dark tinted crystal glass */
-            background:
-                repeating-linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.015) 0px,
-                    rgba(255, 255, 255, 0.03) 1px,
-                    transparent 1px,
-                    transparent 4px
-                ),
-                repeating-linear-gradient(
-                    -135deg,
-                    rgba(255, 255, 255, 0.01) 0px,
-                    rgba(255, 255, 255, 0.02) 1px,
-                    transparent 1px,
-                    transparent 6px
-                ),
-                rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
-            -webkit-backdrop-filter: blur(80px) saturate(150%) brightness(0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 0.5rem;
+            /* Apple-style deep tinted glass */            
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
             box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.8),
-                0 2px 8px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-            filter: url(#ribbed-glass);
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
             overflow: hidden;
             position: relative;
             width: 100%;
@@ -352,16 +317,6 @@
 </head>
 <body>
 
-    <!-- SVG filter for ribbed glass effect -->
-    <svg class="ribbed-glass-svg" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <filter id="ribbed-glass" x="-5%" y="-5%" width="110%" height="110%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="3" seed="2" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-        </defs>
-    </svg>
-
     <!-- 0. The Planet Background -->
     <div class="bg-planet"></div>
 
@@ -383,7 +338,7 @@
                         </radialGradient>
                     </defs>
                     <circle cx="20" cy="20" r="18" fill="url(#sphereGrad)"/>
-                    <circle cx="15" cy="14" r="5" fill="rgba(255,255,255,0.3)"/>
+                    <circle cx="15" cy="14" r="5" fill="rgba(255,255,255,0.3)" class="logo-glare" style="transition: transform 0.1s linear;"/>
                 </svg>
                 <h1 class="logo-title" style="font-family: 'Inter', sans-serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 1);">MySphere</h1>
             </div>
@@ -1114,6 +1069,19 @@
 
                 mouse.x += (targetMouse.x - mouse.x) * 0.03;
                 mouse.y += (targetMouse.y - mouse.y) * 0.03;
+
+                // Animate Logo Glare to float with mouse
+                const logoGlare = document.querySelector('.logo-glare');
+                if (logoGlare) {
+                    const tx = mouse.x * 4;
+                    const ty = -mouse.y * 4;
+                    logoGlare.style.transform = `translate(${tx}px, ${ty}px)`;
+                }
+                
+                // Clear the whole logo transform if we set it previously
+                if (logoIcon) {
+                    logoIcon.style.transform = 'none';
+                }
 
                 if (rayMat) {
                     rayMat.uniforms.time.value = time;

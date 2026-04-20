@@ -20,21 +20,21 @@ services:
       - "443:443"
     volumes:
       # Static files (read-only) — монтируются только файлы, не директории
-      - ./data/index.html:/usr/share/nginx/html/index.html:ro
-      - ./data/status.php:/usr/share/nginx/html/status.php:ro
-      - ./data/phpinfo.php:/usr/share/nginx/html/phpinfo.php:ro
-      - ./data/favicon.ico:/usr/share/nginx/html/favicon.ico:ro
       - ./data/apple-touch-icon.png:/usr/share/nginx/html/apple-touch-icon.png:ro
+      - ./data/favicon.ico:/usr/share/nginx/html/favicon.ico:ro
+      - ./data/index.html:/usr/share/nginx/html/index.html:ro
+      # Nginx configuration file
+      # Файл конфигурации nginx
+      - ./data/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./data/phpinfo.php:/usr/share/nginx/html/phpinfo.php:ro
       - ./data/robots.txt:/usr/share/nginx/html/robots.txt:ro
+      - ./data/status.php:/usr/share/nginx/html/status.php:ro
       - ./data/VERSION:/usr/share/nginx/html/VERSION:ro
       # Dedicated auth attempts log storage on host
       - /var/log/myfakesite:/var/log/myfakesite
       # Let's Encrypt ACME challenge (for certbot webroot validation)
       # Челлендж Let's Encrypt (для валидации certbot через webroot)
       - /var/www/acme-challenge:/usr/share/nginx/html/.well-known/acme-challenge
-      # Nginx configuration file
-      # Файл конфигурации nginx
-      - ./data/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       # SSL certificates (paths updated by install.sh for the target domain)
       # SSL-сертификаты (пути обновляются install.sh для целевого домена)
       - /etc/letsencrypt/live/YOUDOMEN.XXX/fullchain.pem:/etc/nginx/certs/fakesite.crt:ro
