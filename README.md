@@ -14,7 +14,7 @@
 
 ### Что это?
 
-<img width="2560" height="1250" alt="image" src="https://github.com/user-attachments/assets/d01709f3-eac1-47d1-9b33-da7199983fb2" />
+![Демонстрация смены тем](/docs/front.webp)
 
 ---
 
