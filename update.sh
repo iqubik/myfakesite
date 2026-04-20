@@ -15,20 +15,20 @@ usage() {
 
 Параметры:
   -r  Git URL репозитория (по умолчанию: https://github.com/iqubik/myfakesite.git)
-  -b  Ветка (по умолчанию: main)
+  -b  Ветка (по умолчанию: test-ssl-custom-ip)
   -p  Папка проекта (по умолчанию: /opt/myfakesite)
   -y  Неинтерактивный режим (без подтверждения)
   -h  Показать справку
 
 Примеры:
-  ./update.sh                              # Обновить до main
+  ./update.sh                              # Обновить до test-ssl-custom-ip
   ./update.sh -b feature-branch            # Обновить до ветки
   ./update.sh -r https://github.com/me/myfakesite.git -b mybranch
 EOF
 }
 
 REPO_URL="https://github.com/iqubik/myfakesite.git"
-BRANCH="main"
+BRANCH="test-ssl-custom-ip"
 PROJECT_DIR="/opt/myfakesite"
 NON_INTERACTIVE=false
 
