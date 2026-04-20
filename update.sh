@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# file: update.sh v1.1
+# file: update.sh v1.2
 set -euo pipefail
+
+VERSION="1.2"
 
 trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
 
@@ -93,7 +95,7 @@ echo "==================================================="
 echo "  MySphere — Обновление"
 echo "==================================================="
 echo ""
-echo "[INFO] Версия скрипта: 1.1"
+echo "[INFO] Версия скрипта: $VERSION"
 echo ""
 
 [[ -d "$PROJECT_DIR" ]] || die "Папка проекта не найдена: $PROJECT_DIR"
