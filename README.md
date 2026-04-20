@@ -14,7 +14,7 @@
 
 ### Что это?
 
-<img width="2560" height="1000" alt="2026-04-13_16-12-57" src="https://github.com/user-attachments/assets/9ed3ea55-884c-4ba5-af3b-78577efeec93" />
+<img width="2560" height="1250" alt="image" src="https://github.com/user-attachments/assets/d01709f3-eac1-47d1-9b33-da7199983fb2" />
 
 ---
 
@@ -265,7 +265,7 @@ sudo fail2ban-client status myfakesite-auth
 - Контрольные вопросы для самопроверки
 - Шпаргалку по mock API-паттернам
 
-<img width="2560" height="1000" alt="image" src="https://github.com/user-attachments/assets/3fc134e5-6759-4160-9c37-3ec1ca21f19f" />
+<img width="2560" height="1250" alt="image" src="https://github.com/user-attachments/assets/5aba3fe6-dada-40fb-8abe-728e3e829cca" />
 
 ---
 
@@ -525,4 +525,4 @@ Inside you'll find:
 
 **License:** MIT
 
-<img width="2560" height="1000" alt="2026-04-13_16-13-58" src="https://github.com/user-attachments/assets/eb587eb5-8cfe-474d-bf59-ec831df19971" />
+<img width="2560" height="1250" alt="image" src="https://github.com/user-attachments/assets/bf4d2e5c-6e21-4233-becb-34a11b828826" />
