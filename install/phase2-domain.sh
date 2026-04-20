@@ -195,6 +195,23 @@ if [[ "$MODE" != "http" ]]; then
     esac
   else
     log "Порт 443 свободен ✓"
+    if [[ "$NON_INTERACTIVE" != "true" ]]; then
+      echo ""
+      echo "  MySphere может использовать порт 443 или другой порт."
+      echo "  1) Использовать порт 443 (по умолчанию)"
+      echo "  2) Указать свой HTTPS-порт (например 8443)"
+      echo ""
+      read -r -p "Выбор [1]: " ch
+      case "$ch" in
+        2)
+          choose_custom_ssl_port
+          ;;
+        *)
+          log "Используем порт 443."
+          SSL_PORT=443
+          ;;
+      esac
+    fi
   fi
 fi
 
