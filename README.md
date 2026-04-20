@@ -291,6 +291,7 @@ The concept is simple: you want to build a polished single-page application with
 5. **Docker Compose** — minimal infrastructure: Nginx + PHP-FPM, each with CPU and memory limits.
 
 6. **3D graphics in the browser** — Three.js (r128), GLSL shaders, gradient textures, lighting — all client-side, no server involvement.
+
 </details>
 
 ### Why this matters
@@ -304,23 +305,10 @@ The concept is simple: you want to build a polished single-page application with
 
 #### ⚡ Quick Install (one command)
 
-> This is **optional**. If you prefer manual setup — just `git clone` and `docker compose up -d` (see below).
-
 ```bash
-# HTTP mode, localhost (silent, no prompts)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
-
-# With domain and HTTPS (Let's Encrypt, silent)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
-
-# With self-signed certificate (by IP, silent)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
-
 # Interactive mode (script will ask questions)
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash
 ```
-
-The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail and you make chouse you custom port. Without `-y`, the script will offer options.
 
 > **Requirements:** Linux server with `curl`. The script installs Docker, Docker Compose and everything else automatically. Runs as **root**.
 
@@ -329,20 +317,33 @@ The `-y` flag — fully automated installation without any prompts. If ports 80/
 ```bash
 # Update to latest version
 curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -y
-
-# Update to a specific branch/repo
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
 ```
 
 > Update finds the project in `/opt/myfakesite` (or specify `-p /path`). Works from any directory.
 
-#### Manual setup
+#### ⚡ Quick Uninstall (one command)
+
+```bash
+# Without confirmation (force)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
+```
+
+> **Important:** `delete.sh` removes only log-rotation cron (`myfakesite-log-rotate`) and `/var/log/myfakesite`. It does **not** touch `/etc/letsencrypt/` or certbot cron (`certbot-fakesite`) — certificates and auto-renewal remain on the server.
+
+---
+
+<details>
+  <summary>Manual setup: details and extended commands</summary>
+
+> This is **optional**. If you prefer manual setup — just `git clone` and `docker compose up -d`.
 
 ```bash
 docker compose up -d
 ```
 
 Before running, replace `YOUDOMEN.XXX` and `SSL_PORT_PLACEHOLDER` in `docker-compose.yml`/`nginx.conf` with your values and provide paths to SSL certificates (or comment out the SSL sections for HTTP-only mode).
+
+---
 
 ### 🛠 Installation, Update, Uninstallation
 
@@ -373,6 +374,19 @@ sudo ./install.sh \
 - With domain and Let's Encrypt — installs certbot, obtains certificate, sets up **auto-renewal** (cron daily at 3:00 AM)
 - Starts containers via Docker Compose
 
+```bash
+# HTTP mode, localhost (silent, no prompts)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -y
+
+# With domain and HTTPS (Let's Encrypt, silent)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d fakesite.example.com -y
+
+# With self-signed certificate (by IP, silent)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/install.sh | sudo bash -s -- -d 192.168.1.100 -y
+```
+
+The `-y` flag — fully automated installation without any prompts. If ports 80/443 are busy, installation will fail and you make chouse you custom port. Without `-y`, the script will offer options.
+
 #### Update
 
 ```bash
@@ -386,6 +400,11 @@ sudo ./update.sh -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-
 sudo ./update.sh \
   -r https://github.com/me/myfakesite.git \
   -b feature-branch
+```
+
+```bash
+# Update to a specific branch/repo (silent via curl)
+curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/update.sh | sudo bash -s -- -r https://github.com/iqubik/myfakesite.git -b test-ssl-custom-ip -y
 ```
 
 **What `update.sh` does:**
@@ -408,13 +427,6 @@ sudo ./delete.sh -f
 
 # From a custom path
 sudo ./delete.sh -p /opt/myfakesite -f
-```
-
-#### ⚡ Quick Uninstall (one command)
-
-```bash
-# Without confirmation (force)
-curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-ip/delete.sh | sudo bash -s -- -f
 ```
 
 **What `delete.sh` does:**
@@ -443,6 +455,21 @@ curl -fsSL https://raw.githubusercontent.com/iqubik/myfakesite/test-ssl-custom-i
     ├── phase*.sh        # Installation phases
     └── certbot-renew-hook.sh  # Certificate renewal hook
 ```
+
+#### Script Parameters
+
+| Parameter | Scripts | Description |
+|-----------|---------|-------------|
+| `-r <url>` | install, update | Git repository URL |
+| `-b <branch>` | install, update | Branch |
+| `-p <path>` | all | Project directory (default: `/opt/myfakesite`) |
+| `-d <domain>` | install | Domain for nginx (empty = localhost, HTTP) |
+| `-c <path>` | install | Path to custom SSL certificate |
+| `-k <path>` | install | Path to custom SSL key |
+| `-f` | delete | Force mode (no confirmation) |
+| `-h` | all | Show help |
+
+</details>
 
 #### 🔐 fail2ban Integration
 
@@ -481,19 +508,6 @@ sudo fail2ban-regex /var/log/myfakesite/access.log /etc/fail2ban/filter.d/myfake
 sudo systemctl restart fail2ban
 sudo fail2ban-client status myfakesite-auth
 ```
-
-#### Script Parameters
-
-| Parameter | Scripts | Description |
-|-----------|---------|-------------|
-| `-r <url>` | install, update | Git repository URL |
-| `-b <branch>` | install, update | Branch |
-| `-p <path>` | all | Project directory (default: `/opt/myfakesite`) |
-| `-d <domain>` | install | Domain for nginx (empty = localhost, HTTP) |
-| `-c <path>` | install | Path to custom SSL certificate |
-| `-k <path>` | install | Path to custom SSL key |
-| `-f` | delete | Force mode (no confirmation) |
-| `-h` | all | Show help
 
 ### 📖 Tutorials & Documentation
 
