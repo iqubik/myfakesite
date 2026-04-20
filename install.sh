@@ -74,7 +74,7 @@ EOF
 
 # ─── Defaults ──────────────────────────────────────────────
 REPO_URL="https://github.com/iqubik/myfakesite.git"
-BRANCH="main"
+BRANCH="test-ssl-custom-ip"
 PROJECT_DIR="/opt/myfakesite"
 DOMAIN=""
 CUSTOM_CERT=""
