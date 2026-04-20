@@ -50,7 +50,7 @@ usage() {
 
 Параметры:
   -r  Git URL репозитория (по умолчанию: https://github.com/iqubik/myfakesite.git)
-  -b  Ветка (по умолчанию: test-ssl-custom-ip)
+  -b  Ветка (по умолчанию: main)
   -p  Папка установки (по умолчанию: /opt/myfakesite)
   -d  Домен или IP-адрес для nginx
       пусто/localhost  → HTTP, порт 80
@@ -74,7 +74,7 @@ EOF
 
 # ─── Defaults ──────────────────────────────────────────────
 REPO_URL="https://github.com/iqubik/myfakesite.git"
-BRANCH="test-ssl-custom-ip"
+BRANCH="main"
 PROJECT_DIR="/opt/myfakesite"
 DOMAIN=""
 CUSTOM_CERT=""
