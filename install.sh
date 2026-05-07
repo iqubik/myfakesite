@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 # file: install.sh v1.1.7
-set -euo pipefail
+set -Eeuo pipefail
 
-trap 'echo -e "\033[1;31m[ERROR]\033[0m Ошибка в строке $LINENO"; exit 1' ERR
+on_err() {
+  local exit_code=$?
+  local line_no="${1:-$LINENO}"
+  local cmd="${BASH_COMMAND:-unknown}"
+  local src="${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}"
+  echo -e "\033[1;31m[ERROR]\033[0m Ошибка (код ${exit_code}) в ${src}:${line_no}"
+  echo -e "\033[1;31m[ERROR]\033[0m Команда: ${cmd}"
+  echo -e "\033[1;33m[WARN]\033[0m Проверьте доступ к github.com и raw.githubusercontent.com"
+  exit "$exit_code"
+}
+trap 'on_err $LINENO' ERR
 
 # ─── Helpers ───────────────────────────────────────────────
 log()  { echo -e "\033[1;32m[INFO]\033[0m $1"; }
@@ -290,9 +300,18 @@ _resolve_phase_dir() {
     warn "Загружаем файлы фаз из репозитория..." >&2
     local phase_file
     for phase_file in phase1-prereqs.sh phase2-domain.sh phase3-certs.sh phase4-apply.sh phase5-start.sh; do
-      if ! curl -fsSL "${base_url}/${phase_file}" -o "$tmp_install/${phase_file}" 2>&1; then
-        die "Не удалось загрузить $phase_file из ${base_url}"
+      local phase_url="${base_url}/${phase_file}"
+      local curl_err="/tmp/myfakesite-curl-${phase_file}.log"
+      if ! curl --retry 3 --retry-delay 1 --connect-timeout 10 --max-time 60 -fSL "$phase_url" -o "$tmp_install/${phase_file}" 2>"$curl_err"; then
+        local curl_exit=$?
+        local curl_log=""
+        if [[ -s "$curl_err" ]]; then
+          curl_log="$(tail -n 1 "$curl_err")"
+        fi
+        rm -f "$curl_err"
+        die "Не удалось загрузить ${phase_file} (exit=${curl_exit}) из ${phase_url}. Детали: ${curl_log:-нет подробностей от curl}"
       fi
+      rm -f "$curl_err"
     done
     log "Файлы фаз загружены ✓" >&2
     
