@@ -3,9 +3,11 @@
 # Phase 3: SSL certificates
 # Sets: SSL_CERT_PATH, SSL_KEY_PATH, SSL_MODE
 # Expects: MODE, DOMAIN, CUSTOM_CERT, CUSTOM_KEY, NON_INTERACTIVE, log/warn/die
+PHASE_VERSION="1.1.8"
 
 log "═══════════════════════════════════════════"
 log "  Фаза 3: SSL-сертификаты"
+log "  Версия фазы: ${PHASE_VERSION}"
 log "═══════════════════════════════════════════"
 
 SSL_CERT_PATH=""

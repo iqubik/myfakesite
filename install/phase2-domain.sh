@@ -3,9 +3,11 @@
 # Phase 2: Domain/IP detection, port checks, UFW
 # Sets: MODE, DOMAIN, SSL_PORT
 # Expects: DOMAIN, SSL_PORT, PROJECT_DIR, NON_INTERACTIVE, log/warn/die
+PHASE_VERSION="1.1.8"
 
 log "═══════════════════════════════════════════"
 log "  Фаза 2: Домен, порты, фаервол"
+log "  Версия фазы: ${PHASE_VERSION}"
 log "═══════════════════════════════════════════"
 
 is_ip_address() {

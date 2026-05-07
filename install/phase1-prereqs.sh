@@ -2,12 +2,14 @@
 # file: install/phase1-prereqs.sh v1.0
 # Phase 1: Prerequisites + Git clone/pull
 # Expects: REPO_URL, BRANCH, PROJECT_DIR, log/warn/die
+PHASE_VERSION="1.1.8"
 
 #################################
 # SYSTEM CHECKS
 #################################
 log "═══════════════════════════════════════════"
 log "  Фаза 1: Проверка окружения"
+log "  Версия фазы: ${PHASE_VERSION}"
 log "═══════════════════════════════════════════"
 
 need_cmd() {

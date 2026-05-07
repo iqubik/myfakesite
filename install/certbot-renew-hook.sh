@@ -3,8 +3,10 @@
 # Deploy-hook для certbot: перезапускает контейнер после обновления сертификата
 # Вызывается ТОЛЬКО при успешном renew одного из сертификатов
 # Контекст: DOMAIN уже в renewal config, certs обновлены
+HOOK_VERSION="1.1.8"
 
 set -euo pipefail
+echo "[certbot-renew-hook] Версия хука: ${HOOK_VERSION}" >&2
 
 # Определяем путь к проекту
 PROJECT_DIR=""

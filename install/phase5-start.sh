@@ -2,9 +2,11 @@
 # file: install/phase5-start.sh v1.1
 # Phase 5: Start containers, verify, summary
 # Expects: MODE, DOMAIN, SSL_PORT, COMPOSE_CMD, NON_INTERACTIVE, log/warn/die
+PHASE_VERSION="1.1.8"
 
 log "═══════════════════════════════════════════"
 log "  Фаза 5: Запуск и проверка"
+log "  Версия фазы: ${PHASE_VERSION}"
 log "═══════════════════════════════════════════"
 
 #################################

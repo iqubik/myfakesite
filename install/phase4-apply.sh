@@ -2,9 +2,11 @@
 # file: install/phase4-apply.sh v1.0
 # Phase 4: Apply config — replace domain, adapt for HTTP mode
 # Expects: DOMAIN, MODE, SSL_PORT, SSL_CERT_PATH, SSL_KEY_PATH, log/warn/die
+PHASE_VERSION="1.1.8"
 
 log "═══════════════════════════════════════════"
 log "  Фаза 4: Настройка конфигурации"
+log "  Версия фазы: ${PHASE_VERSION}"
 log "═══════════════════════════════════════════"
 
 #################################

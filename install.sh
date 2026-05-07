@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# file: install.sh v1.1.7
+# file: install.sh
 set -Eeuo pipefail
+
+SVERSION="1.1.8"
 
 on_err() {
   local exit_code=$?
@@ -111,7 +113,7 @@ done
 show_banner
 
 # ─── Script version ───────────────────────────────────────
-echo "[INFO] Версия скрипта: 1.1.7"
+echo "[INFO] Версия скрипта: $SVERSION"
 echo ""
 
 # ─── Need root ─────────────────────────────────────────────
