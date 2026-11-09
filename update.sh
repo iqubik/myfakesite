@@ -320,6 +320,7 @@ fi
 # RESTART CONTAINERS
 #################################
 log "Перезапуск контейнеров..."
+"${COMPOSE_CMD[@]}" pull php-fpm
 "${COMPOSE_CMD[@]}" down --remove-orphans 2>/dev/null || true
 "${COMPOSE_CMD[@]}" up -d --remove-orphans
 

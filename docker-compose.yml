@@ -56,7 +56,7 @@ services:
   # ─── PHP-FPM processor ───
   # Обработчик PHP (выполняет PHP-скрипты через FastCGI)
   php-fpm:
-    image: php:8.3-fpm-alpine
+    image: php:8.5-fpm-alpine
     container_name: fakesite-php
     restart: unless-stopped
     volumes:

@@ -14,6 +14,7 @@ log "═════════════════════════
 #################################
 echo ""
 log "Запускаем контейнеры..."
+"${COMPOSE_CMD[@]}" pull php-fpm
 
 # Останавливаем старые, если были
 "${COMPOSE_CMD[@]}" down --remove-orphans 2>/dev/null || true
